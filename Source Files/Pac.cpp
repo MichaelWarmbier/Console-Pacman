@@ -19,6 +19,7 @@ bool keyIsDown(char key, bool pressed = true, bool held = true);
 double getTime(); //Returns timer with nanosecond precision
 double getTimeSince(double); //Returns timer with nanosecond precision since a point in time
 double wait(double); //Pauses for the given amount of seconds, returns how much extra time was waited
+void ShowConsoleCursor(bool);
 void rotate(int sprite[16][16], int);
 
 int f_count = 0;
@@ -106,8 +107,9 @@ int wall[16][16] = {
 
 int main() {
 	int gameWidth = 69, gameHeight = 21;
-	system(("MODE " + to_string(gameWidth) + ", " to_string(gameHeight)).c_str());
-	
+	system(("MODE " + to_string(gameWidth) + ", " + to_string(gameHeight)).c_str());
+	ShowConsoleCursor(false);
+
 	while (timer += (dt = FPS + wait(FPS))) {
 		drawClearEntity(playerInput);
 		if (f_count == 1 || f_count == 2)
@@ -254,4 +256,14 @@ double wait(double waitTime) {
 	while (waitTime > getTimeSince(startTime)) {}
 
 	return getTimeSince(startTime + waitTime);
+}
+
+void ShowConsoleCursor(bool showFlag) {
+	HANDLE out = GetStdHandle(STD_OUTPUT_HANDLE);
+
+	CONSOLE_CURSOR_INFO     cursorInfo;
+
+	GetConsoleCursorInfo(out, &cursorInfo);
+	cursorInfo.bVisible = showFlag; // Set the cursor visibility
+	SetConsoleCursorInfo(out, &cursorInfo);
 }
