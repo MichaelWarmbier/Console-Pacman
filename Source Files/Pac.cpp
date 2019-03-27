@@ -28,7 +28,7 @@ COLORREF black = RGB(12, 12, 12);
 
 int playerX = 40, playerY = 40;
 
-double FPS = 1.0 / 60.0;
+double FPS = 1.0 / 30.0;
 double timer = 0, dt = 0;
 
 int PacMan_F1[16][16] = {
@@ -106,11 +106,11 @@ int wall[16][16] = {
 int main() {
 	while (timer += (dt = FPS + wait(FPS))) {
 		drawClearEntity(playerInput);
-		if (f_count == 1)
+		if (f_count == 1 || f_count == 2)
 			drawEntity(PacMan_F1);
-		if (f_count == 2)
+		if (f_count == 3 || f_count == 4)
 			drawEntity(PacMan_F2);
-		if (f_count == 0)
+		if (f_count == 5 || f_count == 0)
 			drawEntity(PacMan_F3);
 		input();
 		logic();
@@ -142,7 +142,7 @@ void input() {
 }
 
 void logic() {
-	if (f_count == 2)
+	if (f_count == 5)
 		f_count = 0;
 	else
 		f_count++;
