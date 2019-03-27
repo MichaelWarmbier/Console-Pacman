@@ -1,4 +1,3 @@
-
 #include <iostream>
 #include <windows.h>
 #include <conio.h>
@@ -14,11 +13,13 @@ double getTime(); //Returns timer with nanosecond precision
 double getTimeSince(double); //Returns timer with nanosecond precision since a point in time
 double wait(double); //Pauses for the given amount of seconds, returns how much extra time was waited
 
-enum keyboardInput {UP, DOWN, LEFT, RIGHT, START, NONE};
+enum keyboardInput { UP, DOWN, LEFT, RIGHT, START, NONE };
 keyboardInput playerInput = NONE, lastPlayerInput = NONE;
 int f_count = 0;
 
-COLORREF yellow = RGB(255, 255, 0), COLORREF blue = RGB(0, 0, 255);
+COLORREF yellow = RGB(255, 255, 0);
+COLORREF blue = RGB(0, 0, 255);
+
 int playerX = 40, playerY = 40;
 
 double FPS = 1.0 / 60.0;
@@ -41,6 +42,7 @@ int PacMan_F1[16][16] = {
 	0,0,0,0,0,0,1,1,1,1,1,0,0,0,0,0,
 	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 };
+
 int PacMan_F2[16][16] = {
 	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 	0,0,0,0,0,0,1,1,1,1,1,0,0,0,0,0,
@@ -58,6 +60,7 @@ int PacMan_F2[16][16] = {
 	0,0,0,0,0,0,1,1,1,1,1,0,0,0,0,0,
 	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 };
+
 int PacMan_F3[16][16] = {
 	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 	0,0,0,0,0,1,1,1,1,1,1,1,0,0,0,0,
@@ -75,6 +78,7 @@ int PacMan_F3[16][16] = {
 	0,0,0,0,0,1,1,1,1,1,1,1,0,0,0,0,
 	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 };
+
 int wall[16][16] = {
 	0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,
 	0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,
@@ -92,6 +96,7 @@ int wall[16][16] = {
 	0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,
 	0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,
 };
+
 int main() {
 	while (timer += (dt = FPS + wait(FPS))) {
 		if (f_count == 1)
@@ -106,36 +111,35 @@ int main() {
 	}
 	return 0;
 }
+
 void input() {
 	if (playerInput != NONE && playerInput != START)
 		lastPlayerInput = playerInput;
 	playerInput = NONE;
-	if (_kbhit()) {
-		switch (_getch()) {
-		case 'a':
-			playerInput = LEFT;
-			break;
-		case 'd':
-			playerInput = RIGHT;
-			break;
-		case 'w':
-			playerInput = UP;
-			break;
-		case 's':
-			playerInput = DOWN;
-			break;
-		case 13:
-			playerInput = START;
-		}
-	}
+
+	char enterKey = 13;
+
+	if (keyIsDown(enterKey, true, false))
+		playerInput = START;
+
+	if (keyIsDown('A') && !keyIsDown('D'))
+		playerInput = LEFT;
+	else if (keyIsDown('D') && !keyIsDown('A'))
+		playerInput = RIGHT;
+	else if (keyIsDown('W') && !keyIsDown('S'))
+		playerInput = UP;
+	else if (keyIsDown('S') && !keyIsDown('W'))
+		playerInput = DOWN;
+
 	if (playerInput != NONE && playerInput != START)
 		lastPlayerInput = playerInput;
 }
+
 void logic() {
 	if (f_count == 2)
 		f_count = 0;
 	else
-		f_count ++;
+		f_count++;
 	switch (playerInput) {
 	case LEFT:
 		playerX -= 5;
@@ -153,6 +157,7 @@ void logic() {
 
 
 }
+
 void drawEntity(int sprite[16][16]) {
 	for (int y = 0; y < 16; y++) {
 		for (int x = 0; x < 16; x++) {
