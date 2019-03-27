@@ -12,6 +12,7 @@ bool keyIsDown(char key, bool pressed = true, bool held = true);
 double getTime(); //Returns timer with nanosecond precision
 double getTimeSince(double); //Returns timer with nanosecond precision since a point in time
 double wait(double); //Pauses for the given amount of seconds, returns how much extra time was waited
+void rotate(int sprite[16][16], int);
 
 enum keyboardInput { UP, DOWN, LEFT, RIGHT, START, NONE };
 keyboardInput playerInput = NONE, lastPlayerInput = NONE;
@@ -158,20 +159,19 @@ void logic() {
 
 }
 
-void drawEntity(int sprite[16][16]) {
+void rotate(int sprite[16][16], int deg) {
 	for (int y = 0; y < 16; y++) {
 		for (int x = 0; x < 16; x++) {
-			switch (lastPlayerInput) {
-			case RIGHT:
-			case NONE:
+			switch (deg) {
+			case 0:
 				if (sprite[y][x] == 1)
 					SetPixel(hdc, playerX + x, playerY + y, yellow);
 				break;
-			case DOWN:
+			case 90:
 				if (sprite[y][x] == 1)
 					SetPixel(hdc, playerX + y, playerY + x, yellow);
 				break;
-			case LEFT:
+			case 180:
 				if (sprite[y][x] == 1) {
 					if (x < 8)
 						SetPixel(hdc, playerX + x + ((8 - x) * 2), playerY + y, yellow);
@@ -179,16 +179,36 @@ void drawEntity(int sprite[16][16]) {
 						SetPixel(hdc, playerX + x - ((x - 8) * 2), playerY + y, yellow);
 				}
 				break;
-			case UP:
+			case 270:
 				if (sprite[y][x] == 1) {
-					if (sprite[y][x] == 1) {
-						if (x < 8)
-							SetPixel(hdc, playerX + y + ((8 - y) * 2), playerY + x + ((8 - x) * 2), yellow);
-						if (x >= 8)
-							SetPixel(hdc, playerX + y - ((y - 8) * 2), playerY + x - ((x - 8) * 2), yellow);
-					}
-
+					if (x < 8)
+						SetPixel(hdc, playerX + y + ((8 - y) * 2), playerY + x + ((8 - x) * 2), yellow);
+					if (x >= 8)
+						SetPixel(hdc, playerX + y - ((y - 8) * 2), playerY + x - ((x - 8) * 2), yellow);
 				}
+				break;
+			}
+		}
+	}
+}
+
+void drawEntity(int sprite[16][16]) {
+	for (int y = 0; y < 16; y++) {
+		for (int x = 0; x < 16; x++) {
+			switch (lastPlayerInput) {
+			case RIGHT:
+			case NONE:
+				rotate(sprite, 0);
+				break;
+			case DOWN:
+				rotate(sprite, 90);
+				break;
+			case LEFT:
+				rotate(sprite, 180);
+				break;
+			case UP:
+				rotate(sprite, 270);
+				break;
 			}
 		}
 	}
