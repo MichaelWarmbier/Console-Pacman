@@ -4,6 +4,8 @@
 #include <conio.h>
 #include <chrono>
 
+#pragma comment(lib, "winmm.lib") // Support for playing audio
+
 using namespace std;
 
 HDC hdc = GetDC(GetConsoleWindow());
@@ -140,7 +142,7 @@ int main() {
 	int gameWidth = 69, gameHeight = 21;
 	system(("MODE " + to_string(gameWidth) + ", " + to_string(gameHeight)).c_str());
 	ShowConsoleCursor(false);
-
+	// PlaySound("Sounds\\pacman_beginning.wav", NULL, SND_ASYNC);
 	while ((timer += (dt = FPS + wait(FPS))) && !EXIT_PROGRAM) {
 		drawClearEntity(playerInput);
 		if (f_count == 1 || f_count == 2)
