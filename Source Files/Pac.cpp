@@ -21,6 +21,7 @@ double getTimeSince(double); //Returns timer with nanosecond precision since a p
 double wait(double); //Pauses for the given amount of seconds, returns how much extra time was waited
 void ShowConsoleCursor(bool);
 void rotate(int sprite[16][16], int);
+void rotatetile(int sprite[8][8], int);
 
 int f_count = 0;
 
@@ -32,7 +33,20 @@ int playerX = 40, playerY = 40;
 
 double FPS = 1.0 / 30.0;
 double timer = 0, dt = 0;
+// TEMP: 1 == top left, 2 == top right, 3 == bottom left, 4 == bottom right, 5 == vertical wall, 6 == horizontal wall, 0 == empty
+int map[10][10]{
+	0,0,0,0,0,0,0,0,0,0,
+	0,0,0,0,0,0,0,0,0,0,
+	0,0,0,0,0,0,0,0,0,0,
+	0,0,0,0,0,0,0,0,0,0,
+	0,0,0,0,0,0,0,0,0,0,
+	0,0,0,0,0,0,0,0,0,0,
+	0,0,0,0,0,0,0,0,0,0,
+	0,0,0,0,0,0,0,0,0,0,
+	0,0,0,0,0,0,0,0,0,0,
+	0,0,0,0,0,0,0,0,0,0,
 
+};
 int PacMan_F1[16][16] = {
 	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 	0,0,0,0,0,0,1,1,1,1,1,0,0,0,0,0,
@@ -87,24 +101,27 @@ int PacMan_F3[16][16] = {
 	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 };
 
-int wall[16][16] = {
-	0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,
-	0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,
-	0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,
-	0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,
-	0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,
-	0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,
-	0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,
-	0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,
-	0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,
-	0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,
-	0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,
-	0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,
-	0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,
-	0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,
-	0,0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,
+int wall[8][8] = {
+	0,0,0,0,2,0,0,0,
+	0,0,0,0,2,0,0,0,
+	0,0,0,0,2,0,0,0,
+	0,0,0,0,2,0,0,0,
+	0,0,0,0,2,0,0,0,
+	0,0,0,0,2,0,0,0,
+	0,0,0,0,2,0,0,0,
+	0,0,0,0,2,0,0,0,
 };
 
+int wall_corner[8][8] = {
+	2,0,0,2,0,0,0,0,
+	2,0,0,2,0,0,0,0,
+	2,0,0,2,0,0,0,0,
+	2,0,0,0,2,0,0,0,
+	0,2,0,0,0,2,2,2,
+	0,2,0,0,0,0,0,0,
+	0,0,2,2,0,0,0,0,
+	0,0,0,0,2,2,2,2,
+};
 int main() {
 	int gameWidth = 69, gameHeight = 21;
 	system(("MODE " + to_string(gameWidth) + ", " + to_string(gameHeight)).c_str());
@@ -194,6 +211,39 @@ void rotate(int sprite[16][16], int deg) {
 						SetPixel(hdc, playerX + y + ((8 - y) * 2), playerY + x + ((8 - x) * 2), yellow);
 					if (x >= 8)
 						SetPixel(hdc, playerX + y - ((y - 8) * 2), playerY + x - ((x - 8) * 2), yellow);
+				}
+				break;
+			}
+		}
+	}
+}
+
+void rotatetile(int sprite[8][8], int deg) {
+	for (int y = 0; y < 8; y++) {
+		for (int x = 0; x < 8; x++) {
+			switch (deg) {
+			case 0:
+				if (sprite[y][x] == 2)
+					SetPixel(hdc, playerX + x, playerY + y, blue);
+				break;
+			case 90:
+				if (sprite[y][x] == 2)
+					SetPixel(hdc, playerX + y, playerY + x, blue);
+				break;
+			case 180:
+				if (sprite[y][x] == 2) {
+					if (x < 4)
+						SetPixel(hdc, playerX + x + ((4 - x) * 2), playerY + y, blue);
+					if (x >= 4)
+						SetPixel(hdc, playerX + x - ((x - 4) * 2), playerY + y, blue);
+				}
+				break;
+			case 270:
+				if (sprite[y][x] == 2) {
+					if (x < 4)
+						SetPixel(hdc, playerX + y + ((4 - y) * 2), playerY + x + ((8 - x) * 2), blue);
+					if (x >= 4)
+						SetPixel(hdc, playerX + y - ((y - 4) * 2), playerY + x - ((x - 8) * 2), blue);
 				}
 				break;
 			}
