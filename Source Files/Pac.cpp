@@ -1,14 +1,29 @@
+
 #include <iostream>
 #include <windows.h>
 #include <conio.h>
-HDC hdc = GetDC(GetConsoleWindow());
+#include <chrono>
+
 using namespace std;
-enum input {UP, DOWN, LEFT, RIGHT, START, NONE};
-input playerInput = NONE, lastPlayerInput = NONE;
-int f_count = 0;
+
+HDC hdc = GetDC(GetConsoleWindow());
+
 void drawEntity(int sprite[16][16]), input(), logic();
+bool keyIsDown(char key, bool pressed = true, bool held = true);
+double getTime(); //Returns timer with nanosecond precision
+double getTimeSince(double); //Returns timer with nanosecond precision since a point in time
+double wait(double); //Pauses for the given amount of seconds, returns how much extra time was waited
+
+enum keyboardInput {UP, DOWN, LEFT, RIGHT, START, NONE};
+keyboardInput playerInput = NONE, lastPlayerInput = NONE;
+int f_count = 0;
+
 COLORREF yellow = RGB(255,255,0);
 int playerX = 40, playerY = 40;
+
+double FPS = 1.0 / 60.0;
+double timer = 0, dt = 0;
+
 int PacMan_F1[16][16] = {
 	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 	0,0,0,0,0,0,1,1,1,1,1,0,0,0,0,0,
@@ -61,7 +76,7 @@ int PacMan_F3[16][16] = {
 	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
 };
 int main() {
-	while (true) {
+	while (timer += (dt = FPS + wait(FPS))) {
 		if (f_count == 1)
 			drawEntity(PacMan_F1);
 		if (f_count == 2)
@@ -70,7 +85,6 @@ int main() {
 			drawEntity(PacMan_F3);
 		input();
 		logic();
-		Sleep(50);
 		system("CLS");
 	}
 	return 0;
@@ -120,7 +134,7 @@ void logic() {
 		break;
 	}
 
-	
+
 }
 void drawEntity(int sprite[16][16]) {
 	for (int y = 0; y < 16; y++) {
@@ -156,4 +170,25 @@ void drawEntity(int sprite[16][16]) {
 			}
 		}
 	}
+}
+
+bool keyIsDown(char key, bool pressed, bool held) {
+	int keyState = GetAsyncKeyState(static_cast<int>(key));
+	return (pressed && (keyState & 1)) || (held && (keyState & 0xA000));
+}
+
+double getTime() {
+	return chrono::time_point_cast<chrono::nanoseconds>(chrono::high_resolution_clock::now()).time_since_epoch().count() / 1e9;
+}
+
+double getTimeSince(double startTime) {
+	return chrono::time_point_cast<chrono::nanoseconds>(chrono::high_resolution_clock::now()).time_since_epoch().count() / 1e9 - startTime;
+}
+
+double wait(double waitTime) {
+	double startTime = getTime();
+
+	while (waitTime > getTimeSince(startTime)) {}
+
+	return getTimeSince(startTime + waitTime);
 }
