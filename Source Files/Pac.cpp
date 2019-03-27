@@ -33,21 +33,22 @@ COLORREF blue = RGB(0, 0, 255);
 COLORREF black = RGB(12, 12, 12);
 
 int playerX = 40, playerY = 40;
+const int mapWidth = 12, mapHeight = 10;
 
 double FPS = 1.0 / 30.0;
 double timer = 0, dt = 0;
 // TEMP: 1 == top left, 2 == top right, 3 == bottom left, 4 == bottom right, 5 == vertical wall top, 8 == veritcal wall bottom, 6 == horizontal wall right, 7 == horizontal wall left, 0 == empty, 7 == pacman
-int map[10][10]{
-	1,6,6,6,6,6,6,6,6,2,
-	7,0,0,0,0,0,0,0,0,5,
-	7,0,0,0,0,0,0,0,0,5,
-	7,0,0,0,0,0,0,0,0,5,
-	7,0,0,0,0,0,0,0,0,5,
-	7,0,0,0,0,0,0,0,0,5,
-	7,0,0,0,0,0,0,0,0,5,
-	7,0,0,0,0,0,0,0,0,5,
-	7,0,0,0,0,0,0,0,0,5,
-	3,8,8,8,8,8,8,8,8,4,
+int map[mapHeight][mapWidth]{
+	1,6,6,6,6,6,6,6,6,6,6,2,
+	7,0,0,0,0,0,0,0,0,0,0,5,
+	7,0,0,0,0,0,0,0,0,0,0,5,
+	7,0,0,0,0,0,0,0,0,0,0,5,
+	7,0,0,0,0,0,0,0,0,0,0,5,
+	7,0,0,0,0,0,0,0,0,0,0,5,
+	7,0,0,0,0,0,0,0,0,0,0,5,
+	7,0,0,0,0,0,0,0,0,0,0,5,
+	7,0,0,0,0,0,0,0,0,0,0,5,
+	3,8,8,8,8,8,8,8,8,8,8,4,
 
 };
 int PacMan_F1[16][16] = {
@@ -287,8 +288,8 @@ void drawEntity(int sprite[16][16]) {
 }
 
 void drawMap() {
-	for (int y = 0; y < 10; y++) {
-		for (int x = 0; x < 10; x++) {
+	for (int y = 0; y < mapHeight; y++) {
+		for (int x = 0; x < mapWidth; x++) {
 			if (map[y][x] == 5) // right wall
 				rotateTile(wall, 0, (x * 8) + Xshift, (y * 8) + Yshift);
 			if (map[y][x] == 6) // top wall
