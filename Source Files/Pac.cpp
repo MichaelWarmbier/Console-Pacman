@@ -1,4 +1,5 @@
 #include <iostream>
+#include <string>
 #include <windows.h>
 #include <conio.h>
 #include <chrono>
@@ -104,6 +105,9 @@ int wall[16][16] = {
 };
 
 int main() {
+	int gameWidth = 69, gameHeight = 21;
+	system(("MODE " + to_string(gameWidth) + ", " to_string(gameHeight)).c_str());
+	
 	while (timer += (dt = FPS + wait(FPS))) {
 		drawClearEntity(playerInput);
 		if (f_count == 1 || f_count == 2)
