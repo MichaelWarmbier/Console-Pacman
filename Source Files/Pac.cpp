@@ -26,7 +26,7 @@ void rotate(int sprite[16][16], int);
 void rotateTile(int sprite[8][8], int, int, int);
 void drawMap();
 
-int f_count = 0;
+int f_count = 9;
 int Xshift = 40, Yshift = 40;
 bool EXIT_PROGRAM = false;
 
@@ -34,12 +34,16 @@ COLORREF yellow = RGB(255, 255, 0);
 COLORREF blue = RGB(0, 0, 255);
 COLORREF black = RGB(12, 12, 12);
 
+HPEN outline = CreatePen(PS_NULL, 0, black);
+HBRUSH blackBrush = CreateSolidBrush(black);
+
 int playerX = 60, playerY = 60;
 int pacX = playerX / 8, pacY = playerY / 8; // Position of Pacman on the map array.
+bool playerMoved = false;
 const int mapWidth = 12, mapHeight = 10;
 // Collision point values
 
-double FPS = 1.0 / 80.0;
+double FPS = 1.0 / 90.0;
 double timer = 0, dt = 0;
 // MAP DRAWING GUIDE
 // a = TOP LEFT CORNER, b = TOP RIGHT CORNER, c = BOTTOM LEFT CORNER, d = BOTTOM RIGHT CORNER
@@ -136,14 +140,23 @@ int main() {
 	system(("MODE " + to_string(gameWidth) + ", " + to_string(gameHeight)).c_str());
 	ShowConsoleCursor(false);
 
-	// PlaySound("Sounds\\pacman_beginning.wav", GetModuleHandle(NULL), SND_FILENAME | SND_ASYNC);
+	SelectObject(hdc, outline);
+	SelectObject(hdc, blackBrush);
+
+	//PlaySound("Sounds\\pacman_beginning.wav", GetModuleHandle(NULL), SND_FILENAME | SND_ASYNC);
 	while ((timer += (dt = FPS + wait(FPS))) && !EXIT_PROGRAM) {
-		drawClearEntity(playerInput);
+		if (playerMoved) {
+			drawClearEntity(playerInput);
+			playerMoved = false;
+		}
+		else if (f_count % 3 == 1)
+			drawClearEntity(playerInput);
+
 		if (f_count == 1 || f_count == 2 || f_count == 3)
 			drawEntity(PacMan_F1);
 		if (f_count == 4 || f_count == 5 || f_count == 6)
 			drawEntity(PacMan_F2);
-		if (f_count == 7 || f_count == 8 || f_count == 0)
+		if (f_count == 7 || f_count == 8 || f_count == 9)
 			drawEntity(PacMan_F3);
 		drawMap();
 		input();
@@ -162,24 +175,32 @@ void input() {
 	if (keyIsDown(enterKey, true, false))
 		playerInput = START;
 
-	if (keyIsDown('A') && !keyIsDown('D'))
+	if (keyIsDown('A') && !keyIsDown('D')) {
 		playerInput = LEFT;
-	else if (keyIsDown('D') && !keyIsDown('A'))
+		playerMoved = true;
+	}
+	else if (keyIsDown('D') && !keyIsDown('A')) {
 		playerInput = RIGHT;
-	else if (keyIsDown('W') && !keyIsDown('S'))
+		playerMoved = true;
+	}
+	else if (keyIsDown('W') && !keyIsDown('S')) {
 		playerInput = UP;
-	else if (keyIsDown('S') && !keyIsDown('W'))
+		playerMoved = true;
+	}
+	else if (keyIsDown('S') && !keyIsDown('W')) {
 		playerInput = DOWN;
+		playerMoved = true;
+	}
 
 	if (playerInput != NONE && playerInput != START)
 		lastPlayerInput = playerInput;
 }
 
 void logic() {
-	if (f_count == 9)
+	f_count++;
+	if (f_count == 10)
 		f_count = 0;
-	else
-		f_count++;
+	
 	switch (playerInput) {
 	case LEFT:
 		if (GetPixel(hdc, playerX - 2, playerY) == black && GetPixel(hdc, playerX - 2, playerY + 15) == black)
@@ -199,6 +220,9 @@ void logic() {
 		break;
 	case START:
 		EXIT_PROGRAM = true;
+		DeleteObject(outline);
+		DeleteObject(blackBrush);
+		ReleaseDC(GetConsoleWindow(), hdc);
 		break;
 	}
 }
@@ -299,7 +323,7 @@ void drawMap() {
 	for (int y = 0; y < mapHeight; y++) {
 		for (int x = 0; x < mapWidth; x++) {
 			// CORNERS
-			if (map[y][x] == 'a') // Top Left Cornerth
+			if (map[y][x] == 'a') // Top Left Corner
 				rotateTile(wall_corner, 270, (x * 8) + Xshift + 1, (y * 8) + Yshift);
 			if (map[y][x] == 'b') // Top Right Corner
 				rotateTile(wall_corner, 90, (x * 8) + Xshift, (y * 8) + Yshift + 1);
@@ -331,11 +355,18 @@ void drawClearEntity(keyboardInput playerInput) {
 	else if (playerInput == DOWN)
 		yOffset = -2;
 
+	Rectangle(hdc, playerX + xOffset, playerY + yOffset, playerX + xOffset + 17, playerY + yOffset + 17);
+	//Rectangle(hdc, left top right bottom)
+
+	// UP and LEFT is bad, DOWN and RIGHT works
+
+	/*
 	for (int i = 0; i < 16; i++) {
 		for (int j = 0; j < 16; j++) {
 			SetPixel(hdc, playerX + xOffset + j, playerY + yOffset + i, black);
 		}
 	}
+	*/
 }
 
 bool keyIsDown(char key, bool pressed, bool held) {
