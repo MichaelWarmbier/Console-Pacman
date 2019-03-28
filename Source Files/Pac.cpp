@@ -39,19 +39,20 @@ const int mapWidth = 12, mapHeight = 10;
 
 double FPS = 1.0 / 30.0;
 double timer = 0, dt = 0;
-// TEMP: 1 == top left, 2 == top right, 3 == bottom left, 4 == bottom right, 5 == vertical wall top, 8 == veritcal wall bottom, 6 == horizontal wall right, 7 == horizontal wall left, 0 == empty, 7 == pacman
-int map[mapHeight][mapWidth]{
-	1,6,6,6,6,6,6,6,6,6,6,2,
-	7,0,0,0,0,0,0,0,0,0,0,5,
-	7,0,0,0,0,0,0,0,0,0,0,5,
-	7,0,0,0,0,0,0,0,0,0,0,5,
-	7,0,0,0,0,0,0,0,0,0,0,5,
-	7,0,0,0,0,0,0,0,0,0,0,5,
-	7,0,0,0,0,0,0,0,0,0,0,5,
-	7,0,0,0,0,0,0,0,0,0,0,5,
-	7,0,0,0,0,0,0,0,0,0,0,5,
-	3,8,8,8,8,8,8,8,8,8,8,4,
-
+// MAP DRAWING GUIDE
+// a = TOP LEFT CORNER, b = TOP RIGHT CORNER, c = BOTTOM LEFT CORNER, d = BOTTOM RIGHT CORNER
+// t = TOP WALL, f = BOTTOM WALL, l = LEFT WALL, r = RIGHT WALL
+char map[mapHeight][mapWidth]{
+	"atttttttttb",
+	"l         r",
+	"l         r",
+	"l         r",
+	"l         r",
+	"l         r",
+	"l         r",
+	"l         r",
+	"l         r",
+	"cfffffffffd"
 };
 int PacMan_F1[16][16] = {
 	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -128,22 +129,12 @@ int wall_corner[8][8] = {
 	0,0,2,2,0,0,0,0,
 	0,0,0,0,2,2,2,2,
 };
-int wall_corner_tl[8][8] = {
-	0,0,0,2,2,2,2,2,
-	0,0,2,2,0,0,0,0,
-	0,2,0,0,0,0,0,0,
-	0,2,0,0,0,2,2,2,
-	2,0,0,0,2,0,0,0,
-	2,0,0,2,0,0,0,0,
-	2,0,0,2,0,0,0,0,
-	2,0,0,2,0,0,0,0,
-};
 int main() {
 	int gameWidth = 69, gameHeight = 21;
 	system(("MODE " + to_string(gameWidth) + ", " + to_string(gameHeight)).c_str());
 	ShowConsoleCursor(false);
-	
-	PlaySound("Sounds\\pacman_beginning.wav", GetModuleHandle(NULL), SND_FILENAME | SND_ASYNC);
+
+	// PlaySound("Sounds\\pacman_beginning.wav", GetModuleHandle(NULL), SND_FILENAME | SND_ASYNC);
 	while ((timer += (dt = FPS + wait(FPS))) && !EXIT_PROGRAM) {
 		drawClearEntity(playerInput);
 		if (f_count == 1 || f_count == 2)
@@ -293,22 +284,24 @@ void drawEntity(int sprite[16][16]) {
 void drawMap() {
 	for (int y = 0; y < mapHeight; y++) {
 		for (int x = 0; x < mapWidth; x++) {
-			if (map[y][x] == 5) // right wall
-				rotateTile(wall, 0, (x * 8) + Xshift, (y * 8) + Yshift);
-			if (map[y][x] == 6) // top wall
-				rotateTile(wall, 270, (x * 8) + Xshift, (y * 8) + Yshift);
-			if (map[y][x] == 7) // right wall
-				rotateTile(wall, 180, (x * 8) + Xshift, (y * 8) + Yshift);
-			if (map[y][x] == 8) // bottom wall
-				rotateTile(wall, 90, (x * 8) + Xshift, (y * 8) + Yshift);
-			if (map[y][x] == 1) // top left
-				rotateTile(wall_corner_tl, 0, (x * 8) + Xshift + 1, (y * 8) + Yshift + 1);
-			if (map[y][x] == 2) // top right
+			// CORNERS
+			if (map[y][x] == 'a') // Top Left Corner
+				rotateTile(wall_corner, 270, (x * 8) + Xshift, (y * 8) + Yshift);
+			if (map[y][x] == 'b') // Top Right Corner
 				rotateTile(wall_corner, 90, (x * 8) + Xshift, (y * 8) + Yshift + 1);
-			if (map[y][x] == 3) // bottom left
+			if (map[y][x] == 'c') // Bottom Left Corner
 				rotateTile(wall_corner, 0, (x * 8) + Xshift + 1, (y * 8) + Yshift);
-			if (map[y][x] == 4) // bottom right
+			if (map[y][x] == 'd') // Bottom Right Corner
 				rotateTile(wall_corner, 180, (x * 8) - 1 + Xshift, (y * 8) + Yshift);
+			// WALLS
+			if (map[y][x] == 'f') // Bottom Wall
+				rotateTile(wall, 90, (x * 8) + Xshift, (y * 8) + Yshift);
+			if (map[y][x] == 't') // Top wall
+				rotateTile(wall, 270, (x * 8) + Xshift, (y * 8) + Yshift);
+			if (map[y][x] == 'l') // Left Wall
+				rotateTile(wall, 180, (x * 8) + Xshift, (y * 8) + Yshift);
+			if (map[y][x] == 'r') // Right wall
+				rotateTile(wall, 0, (x * 8) + Xshift, (y * 8) + Yshift);
 		}
 	}
 }
