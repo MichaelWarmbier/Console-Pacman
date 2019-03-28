@@ -32,17 +32,19 @@ bool EXIT_PROGRAM = false;
 
 COLORREF yellow = RGB(255, 255, 0);
 COLORREF blue = RGB(0, 0, 255);
-COLORREF black = RGB(12, 12, 12);
+COLORREF black = RGB(12,12,12);
 
-int playerX = 40, playerY = 40;
+int playerX = 60, playerY = 60;
+int pacX = playerX / 8, pacY = playerY / 8; // Position of Pacman on the map array.
 const int mapWidth = 12, mapHeight = 10;
+// Collision point values
 
-double FPS = 1.0 / 30.0;
+double FPS = 1.0 / 80.0;
 double timer = 0, dt = 0;
 // MAP DRAWING GUIDE
 // a = TOP LEFT CORNER, b = TOP RIGHT CORNER, c = BOTTOM LEFT CORNER, d = BOTTOM RIGHT CORNER
 // t = TOP WALL, f = BOTTOM WALL, l = LEFT WALL, r = RIGHT WALL
-char map[mapHeight][mapWidth]{
+char map[mapHeight][mapWidth] = {
 	"atttttttttb",
 	"l         r",
 	"l         r",
@@ -180,16 +182,20 @@ void logic() {
 		f_count++;
 	switch (playerInput) {
 	case LEFT:
-		playerX -= 5;
+		if (GetPixel(hdc, playerX - 2, playerY) == black && GetPixel(hdc, playerX - 2, playerY + 15) == black)
+			playerX -= 2;
 		break;
 	case RIGHT:
-		playerX += 5;
+		if (GetPixel(hdc, playerX + 16, playerY) == black && GetPixel(hdc, playerX + 16, playerY + 15) == black)
+			playerX += 2;
 		break;
 	case UP:
-		playerY -= 5;
+		if (GetPixel(hdc, playerX, playerY - 2) == black && GetPixel(hdc, playerX + 15, playerY - 2) == black)
+			playerY -= 2;
 		break;
 	case DOWN:
-		playerY += 5;
+		if (GetPixel(hdc, playerX, playerY + 16) == black && GetPixel(hdc, playerX + 15, playerY + 16) == black)
+			playerY += 2;
 		break;
 	case START:
 		EXIT_PROGRAM = true;
@@ -252,6 +258,14 @@ void rotateTile(int sprite[8][8], int deg, int spriteX, int spriteY) {
 				break;
 			case 270:
 				if (sprite[y][x] == 2) {
+					if (y < 4)
+						SetPixel(hdc, spriteX + x, spriteY + y + ((4 - y) * 2), blue);
+					if (y >= 4)
+						SetPixel(hdc, spriteX + x, spriteY + y - ((y - 4) * 2), blue);
+				}
+				break;
+			case 4: // CORRECTION CASE
+				if (sprite[y][x] == 2) {
 					if (x < 4)
 						SetPixel(hdc, spriteX + y + ((4 - y) * 2), spriteY + x + ((4 - x) * 2), blue);
 					if (x >= 4)
@@ -285,8 +299,8 @@ void drawMap() {
 	for (int y = 0; y < mapHeight; y++) {
 		for (int x = 0; x < mapWidth; x++) {
 			// CORNERS
-			if (map[y][x] == 'a') // Top Left Corner
-				rotateTile(wall_corner, 270, (x * 8) + Xshift, (y * 8) + Yshift);
+			if (map[y][x] == 'a') // Top Left Cornerth
+				rotateTile(wall_corner, 270, (x * 8) + Xshift + 1, (y * 8) + Yshift);
 			if (map[y][x] == 'b') // Top Right Corner
 				rotateTile(wall_corner, 90, (x * 8) + Xshift, (y * 8) + Yshift + 1);
 			if (map[y][x] == 'c') // Bottom Left Corner
@@ -297,7 +311,7 @@ void drawMap() {
 			if (map[y][x] == 'f') // Bottom Wall
 				rotateTile(wall, 90, (x * 8) + Xshift, (y * 8) + Yshift);
 			if (map[y][x] == 't') // Top wall
-				rotateTile(wall, 270, (x * 8) + Xshift, (y * 8) + Yshift);
+				rotateTile(wall, 4, (x * 8) + Xshift, (y * 8) + Yshift);
 			if (map[y][x] == 'l') // Left Wall
 				rotateTile(wall, 180, (x * 8) + Xshift, (y * 8) + Yshift);
 			if (map[y][x] == 'r') // Right wall
