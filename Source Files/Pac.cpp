@@ -32,7 +32,7 @@ bool EXIT_PROGRAM = false;
 
 COLORREF yellow = RGB(255, 255, 0);
 COLORREF blue = RGB(0, 0, 255);
-COLORREF black = RGB(12,12,12);
+COLORREF black = RGB(12, 12, 12);
 
 int playerX = 60, playerY = 60;
 int pacX = playerX / 8, pacY = playerY / 8; // Position of Pacman on the map array.
@@ -139,11 +139,11 @@ int main() {
 	// PlaySound("Sounds\\pacman_beginning.wav", GetModuleHandle(NULL), SND_FILENAME | SND_ASYNC);
 	while ((timer += (dt = FPS + wait(FPS))) && !EXIT_PROGRAM) {
 		drawClearEntity(playerInput);
-		if (f_count == 1 || f_count == 2)
+		if (f_count == 1 || f_count == 2 || f_count == 3)
 			drawEntity(PacMan_F1);
-		if (f_count == 3 || f_count == 4)
+		if (f_count == 4 || f_count == 5 || f_count == 6)
 			drawEntity(PacMan_F2);
-		if (f_count == 5 || f_count == 0)
+		if (f_count == 7 || f_count == 8 || f_count == 0)
 			drawEntity(PacMan_F3);
 		drawMap();
 		input();
@@ -176,7 +176,7 @@ void input() {
 }
 
 void logic() {
-	if (f_count == 5)
+	if (f_count == 9)
 		f_count = 0;
 	else
 		f_count++;
@@ -323,13 +323,13 @@ void drawMap() {
 void drawClearEntity(keyboardInput playerInput) {
 	int xOffset = 0, yOffset = 0;
 	if (playerInput == LEFT)
-		xOffset = 5;
+		xOffset = 2;
 	else if (playerInput == RIGHT)
-		xOffset = -5;
+		xOffset = -2;
 	else if (playerInput == UP)
-		yOffset = 5;
+		yOffset = 2;
 	else if (playerInput == DOWN)
-		yOffset = -5;
+		yOffset = -2;
 
 	for (int i = 0; i < 16; i++) {
 		for (int j = 0; j < 16; j++) {
