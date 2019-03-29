@@ -39,7 +39,6 @@ HBRUSH blackBrush = CreateSolidBrush(black);
 
 int playerX = 60, playerY = 60;
 int pacX = playerX / 8, pacY = playerY / 8; // Position of Pacman on the map array.
-bool playerMoved = false;
 const int mapWidth = 12, mapHeight = 10;
 // Collision point values
 
@@ -145,13 +144,7 @@ int main() {
 
 	//PlaySound("Sounds\\pacman_beginning.wav", GetModuleHandle(NULL), SND_FILENAME | SND_ASYNC);
 	while ((timer += (dt = FPS + wait(FPS))) && !EXIT_PROGRAM) {
-		if (playerMoved) {
-			drawClearEntity(playerInput);
-			playerMoved = false;
-		}
-		else if (f_count % 3 == 1)
-			drawClearEntity(playerInput);
-
+		drawClearEntity(lastPlayerInput);
 		if (f_count == 1 || f_count == 2 || f_count == 3)
 			drawEntity(PacMan_F1);
 		if (f_count == 4 || f_count == 5 || f_count == 6)
@@ -177,19 +170,15 @@ void input() {
 
 	if (keyIsDown('A') && !keyIsDown('D')) {
 		playerInput = LEFT;
-		playerMoved = true;
 	}
 	else if (keyIsDown('D') && !keyIsDown('A')) {
 		playerInput = RIGHT;
-		playerMoved = true;
 	}
 	else if (keyIsDown('W') && !keyIsDown('S')) {
 		playerInput = UP;
-		playerMoved = true;
 	}
 	else if (keyIsDown('S') && !keyIsDown('W')) {
 		playerInput = DOWN;
-		playerMoved = true;
 	}
 
 	if (playerInput != NONE && playerInput != START)
@@ -344,22 +333,18 @@ void drawMap() {
 	}
 }
 
-void drawClearEntity(keyboardInput playerInput) {
+void drawClearEntity(keyboardInput lastPlayerInput) {
 	int xOffset = 0, yOffset = 0;
-	if (playerInput == LEFT)
+	if (lastPlayerInput == LEFT)
 		xOffset = 2;
-	else if (playerInput == RIGHT)
+	else if (lastPlayerInput == RIGHT)
 		xOffset = -2;
-	else if (playerInput == UP)
+	else if (lastPlayerInput == UP)
 		yOffset = 2;
-	else if (playerInput == DOWN)
+	else if (lastPlayerInput == DOWN)
 		yOffset = -2;
 
 	Rectangle(hdc, playerX + xOffset, playerY + yOffset, playerX + xOffset + 17, playerY + yOffset + 17);
-	//Rectangle(hdc, left top right bottom)
-
-	// UP and LEFT is bad, DOWN and RIGHT works
-
 	/*
 	for (int i = 0; i < 16; i++) {
 		for (int j = 0; j < 16; j++) {
