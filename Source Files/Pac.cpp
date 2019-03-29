@@ -201,7 +201,7 @@ void logic() {
 	if (f_count == 10)
 		f_count = 0;
 
-	switch (playerInput) {
+	switch (lastPlayerInput) {
 	case LEFT:
 		if (GetPixel(hdc, playerX - 2, playerY + 8) == black && GetPixel(hdc, playerX - 1, playerY + 8) == black)
 			playerX -= 2;
