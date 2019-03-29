@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <windows.h>
+#include <tchar.h>
 #include <conio.h>
 #include <chrono>
 
@@ -18,9 +19,9 @@ void drawClearEntity(keyboardInput playerInput);
 void input();
 void logic();
 bool keyIsDown(char key, bool pressed = true, bool held = true);
-double getTime(); //Returns timer with nanosecond precision
-double getTimeSince(double); //Returns timer with nanosecond precision since a point in time
-double wait(double); //Pauses for the given amount of seconds, returns how much extra time was waited
+double getTime(); // Returns timer with nanosecond precision
+double getTimeSince(double); // Returns timer with nanosecond precision since a point in time
+double wait(double); // Pauses for the given amount of seconds, returns how much extra time was waited
 void ShowConsoleCursor(bool);
 void rotate(int sprite[16][16], int);
 void rotateTile(int sprite[8][8], int, int, int);
@@ -36,28 +37,52 @@ COLORREF black = RGB(12, 12, 12);
 
 HPEN outline = CreatePen(PS_NULL, 0, black);
 HBRUSH blackBrush = CreateSolidBrush(black);
+HBRUSH yellowBrush = CreateSolidBrush(yellow);
 
 int playerX = 60, playerY = 60;
 int pacX = playerX / 8, pacY = playerY / 8; // Position of Pacman on the map array.
-const int mapWidth = 12, mapHeight = 10;
+const int mapWidth = 29, mapHeight = 31;
 // Collision point values
 
 double FPS = 1.0 / 90.0;
 double timer = 0, dt = 0;
 // MAP DRAWING GUIDE
 // a = TOP LEFT CORNER, b = TOP RIGHT CORNER, c = BOTTOM LEFT CORNER, d = BOTTOM RIGHT CORNER
+// A = LOWER TOP LEFT CORNER, B = LOWER TOP RIGHT CORNER, C = LOWER BOTTOM LEFT CORNER, D = LOWER BOTTOM RIGHT CORNER
 // t = TOP WALL, f = BOTTOM WALL, l = LEFT WALL, r = RIGHT WALL
 char map[mapHeight][mapWidth] = {
-	"atttttttttb",
-	"l         r",
-	"l         r",
-	"l         r",
-	"l         r",
-	"l         r",
-	"l         r",
-	"l         r",
-	"l         r",
-	"cfffffffffd"
+	"attttttttttttbattttttttttttb",
+	"l                          r",
+	"l                          r",
+	"l                          r",
+	"l                          r",
+	"l                          r",
+	"l                          r",
+	"l                          r",
+	"l                          r",
+	"cffffB                Affffd",
+	"     r                l     ",
+	"     r                l     ",
+	"     r                l     ",
+	"tttttD                Cttttt",
+	"                            ",
+	"fffffB                Afffff",
+	"     r                l     ",
+	"     r                l     ",
+	"     r                l     ",
+	"attttD                Cttttb",
+	"l                          r",
+	"l                          r",
+	"l                          r",
+	"l                          r",
+	"c                          d",
+	"a                          b",
+	"l                          r",
+	"l                          r",
+	"l                          r",
+	"l                          r",
+	"cffffffffffffffffffffffffffd"
+
 };
 int PacMan_F1[16][16] = {
 	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -134,6 +159,7 @@ int wall_corner[8][8] = {
 	0,0,2,2,0,0,0,0,
 	0,0,0,0,2,2,2,2,
 };
+
 int main() {
 	int gameWidth = 69, gameHeight = 21;
 	system(("MODE " + to_string(gameWidth) + ", " + to_string(gameHeight)).c_str());
@@ -142,15 +168,27 @@ int main() {
 	SelectObject(hdc, outline);
 	SelectObject(hdc, blackBrush);
 
-	//PlaySound("Sounds\\pacman_beginning.wav", GetModuleHandle(NULL), SND_FILENAME | SND_ASYNC);
+	// PlaySound("Sounds\\pacman_beginning.wav", GetModuleHandle(NULL), SND_FILENAME | SND_ASYNC);
+	
+	/*
+	HDC Animation2 = CreateCompatibleDC(NULL);
+	HBITMAP bmpF2 = (HBITMAP)LoadImage(NULL, _T("PacMan_F2.bmp"), IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+	SelectObject(Animation2, bmpF2);
+
+	while (true)
+		BitBlt(hdc, 300, 400, 16, 16, Animation2, 0, 0, SRCCOPY);
+	*/
+	
+	drawMap();
 	while ((timer += (dt = FPS + wait(FPS))) && !EXIT_PROGRAM) {
 		drawClearEntity(lastPlayerInput);
 		if (f_count == 1 || f_count == 2 || f_count == 3)
 			drawEntity(PacMan_F1);
-		if (f_count == 4 || f_count == 5 || f_count == 6)
+		else if (f_count == 4 || f_count == 5 || f_count == 6)
 			drawEntity(PacMan_F2);
-		if (f_count == 7 || f_count == 8 || f_count == 9)
+		else if (f_count == 7 || f_count == 8 || f_count == 9)
 			drawEntity(PacMan_F3);
+
 		drawMap();
 		input();
 		logic();
@@ -181,7 +219,7 @@ void input() {
 		playerInput = DOWN;
 	}
 
-	if (playerInput != NONE && playerInput != START)
+	if (playerInput != NONE)
 		lastPlayerInput = playerInput;
 }
 
@@ -222,26 +260,26 @@ void rotate(int sprite[16][16], int deg) {
 			switch (deg) {
 			case 0:
 				if (sprite[y][x] == 1)
-					SetPixel(hdc, playerX + x, playerY + y, yellow);
+					SetPixelV(hdc, playerX + x, playerY + y, yellow);
 				break;
 			case 90:
 				if (sprite[y][x] == 1)
-					SetPixel(hdc, playerX + y, playerY + x, yellow);
+					SetPixelV(hdc, playerX + y, playerY + x, yellow);
 				break;
 			case 180:
 				if (sprite[y][x] == 1) {
 					if (x < 8)
-						SetPixel(hdc, playerX + x + ((8 - x) * 2), playerY + y, yellow);
+						SetPixelV(hdc, playerX + x + ((8 - x) * 2), playerY + y, yellow);
 					if (x >= 8)
-						SetPixel(hdc, playerX + x - ((x - 8) * 2), playerY + y, yellow);
+						SetPixelV(hdc, playerX + x - ((x - 8) * 2), playerY + y, yellow);
 				}
 				break;
 			case 270:
 				if (sprite[y][x] == 1) {
 					if (x < 8)
-						SetPixel(hdc, playerX + y + ((8 - y) * 2), playerY + x + ((8 - x) * 2), yellow);
+						SetPixelV(hdc, playerX + y + ((8 - y) * 2), playerY + x + ((8 - x) * 2), yellow);
 					if (x >= 8)
-						SetPixel(hdc, playerX + y - ((y - 8) * 2), playerY + x - ((x - 8) * 2), yellow);
+						SetPixelV(hdc, playerX + y - ((y - 8) * 2), playerY + x - ((x - 8) * 2), yellow);
 				}
 				break;
 			}
@@ -255,34 +293,34 @@ void rotateTile(int sprite[8][8], int deg, int spriteX, int spriteY) {
 			switch (deg) {
 			case 0:
 				if (sprite[y][x] == 2)
-					SetPixel(hdc, spriteX + x, spriteY + y, blue);
+					SetPixelV(hdc, spriteX + x, spriteY + y, blue);
 				break;
 			case 90:
 				if (sprite[y][x] == 2)
-					SetPixel(hdc, spriteX + y, spriteY + x, blue);
+					SetPixelV(hdc, spriteX + y, spriteY + x, blue);
 				break;
 			case 180:
 				if (sprite[y][x] == 2) {
 					if (x < 4)
-						SetPixel(hdc, spriteX + x + ((4 - x) * 2), spriteY + y, blue);
+						SetPixelV(hdc, spriteX + x + ((4 - x) * 2), spriteY + y, blue);
 					if (x >= 4)
-						SetPixel(hdc, spriteX + x - ((x - 4) * 2), spriteY + y, blue);
+						SetPixelV(hdc, spriteX + x - ((x - 4) * 2), spriteY + y, blue);
 				}
 				break;
 			case 270:
 				if (sprite[y][x] == 2) {
 					if (y < 4)
-						SetPixel(hdc, spriteX + x, spriteY + y + ((4 - y) * 2), blue);
+						SetPixelV(hdc, spriteX + x, spriteY + y + ((4 - y) * 2), blue);
 					if (y >= 4)
-						SetPixel(hdc, spriteX + x, spriteY + y - ((y - 4) * 2), blue);
+						SetPixelV(hdc, spriteX + x, spriteY + y - ((y - 4) * 2), blue);
 				}
 				break;
 			case 4: // CORRECTION CASE
 				if (sprite[y][x] == 2) {
 					if (x < 4)
-						SetPixel(hdc, spriteX + y + ((4 - y) * 2), spriteY + x + ((4 - x) * 2), blue);
+						SetPixelV(hdc, spriteX + y + ((4 - y) * 2), spriteY + x + ((4 - x) * 2), blue);
 					if (x >= 4)
-						SetPixel(hdc, spriteX + y - ((y - 4) * 2), spriteY + x - ((x - 4) * 2), blue);
+						SetPixelV(hdc, spriteX + y - ((y - 4) * 2), spriteY + x - ((x - 4) * 2), blue);
 				}
 				break;
 			}
@@ -311,24 +349,44 @@ void drawEntity(int sprite[16][16]) {
 void drawMap() {
 	for (int y = 0; y < mapHeight; y++) {
 		for (int x = 0; x < mapWidth; x++) {
-			// CORNERS
-			if (map[y][x] == 'a') // Top Left Corner
-				rotateTile(wall_corner, 270, (x * 8) + Xshift + 1, (y * 8) + Yshift);
-			if (map[y][x] == 'b') // Top Right Corner
-				rotateTile(wall_corner, 90, (x * 8) + Xshift, (y * 8) + Yshift + 1);
-			if (map[y][x] == 'c') // Bottom Left Corner
-				rotateTile(wall_corner, 0, (x * 8) + Xshift + 1, (y * 8) + Yshift);
-			if (map[y][x] == 'd') // Bottom Right Corner
-				rotateTile(wall_corner, 180, (x * 8) - 1 + Xshift, (y * 8) + Yshift);
-			// WALLS
-			if (map[y][x] == 'f') // Bottom Wall
+			switch (map[y][x]) {
+			case 'f':
 				rotateTile(wall, 90, (x * 8) + Xshift, (y * 8) + Yshift);
-			if (map[y][x] == 't') // Top wall
+				break;
+			case 't':
 				rotateTile(wall, 4, (x * 8) + Xshift, (y * 8) + Yshift);
-			if (map[y][x] == 'l') // Left Wall
+				break;
+			case 'l':
 				rotateTile(wall, 180, (x * 8) + Xshift, (y * 8) + Yshift);
-			if (map[y][x] == 'r') // Right wall
+				break;
+			case 'r':
 				rotateTile(wall, 0, (x * 8) + Xshift, (y * 8) + Yshift);
+				break;
+			case 'a':
+				rotateTile(wall_corner, 270, (x * 8) + Xshift + 1, (y * 8) + Yshift);
+				break;
+			case 'b':
+				rotateTile(wall_corner, 90, (x * 8) + Xshift, (y * 8) + Yshift + 1);
+				break;
+			case 'c':
+				rotateTile(wall_corner, 0, (x * 8) + Xshift + 1, (y * 8) + Yshift);
+				break;
+			case 'd':
+				rotateTile(wall_corner, 180, (x * 8) - 1 + Xshift, (y * 8) + Yshift);
+				break;
+			case 'A':
+				rotateTile(wall_corner, 270, (x * 8) + Xshift + 1, (y * 8) + Yshift + 3);
+				break;
+			case 'B':
+				rotateTile(wall_corner, 90, (x * 8) + Xshift, (y * 8) + Yshift + 4);
+				break;
+			case 'C':
+				rotateTile(wall_corner, 0, (x * 8) + Xshift + 1, (y * 8) + Yshift - 3);
+				break;
+			case 'D':
+				rotateTile(wall_corner, 180, (x * 8) - 1 + Xshift, (y * 8) + Yshift - 3);
+				break;
+			}
 		}
 	}
 }
@@ -345,13 +403,6 @@ void drawClearEntity(keyboardInput lastPlayerInput) {
 		yOffset = -2;
 
 	Rectangle(hdc, playerX + xOffset, playerY + yOffset, playerX + xOffset + 17, playerY + yOffset + 17);
-	/*
-	for (int i = 0; i < 16; i++) {
-		for (int j = 0; j < 16; j++) {
-			SetPixel(hdc, playerX + xOffset + j, playerY + yOffset + i, black);
-		}
-	}
-	*/
 }
 
 bool keyIsDown(char key, bool pressed, bool held) {
