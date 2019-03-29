@@ -200,22 +200,22 @@ void logic() {
 	f_count++;
 	if (f_count == 10)
 		f_count = 0;
-	
+
 	switch (playerInput) {
 	case LEFT:
-		if (GetPixel(hdc, playerX - 2, playerY) == black && GetPixel(hdc, playerX - 2, playerY + 15) == black)
+		if (GetPixel(hdc, playerX - 2, playerY + 8) == black && GetPixel(hdc, playerX - 1, playerY + 8) == black)
 			playerX -= 2;
 		break;
 	case RIGHT:
-		if (GetPixel(hdc, playerX + 16, playerY) == black && GetPixel(hdc, playerX + 16, playerY + 15) == black)
+		if (GetPixel(hdc, playerX + 16, playerY + 8) == black && GetPixel(hdc, playerX + 17, playerY + 8) == black)
 			playerX += 2;
 		break;
 	case UP:
-		if (GetPixel(hdc, playerX, playerY - 2) == black && GetPixel(hdc, playerX + 15, playerY - 2) == black)
+		if (GetPixel(hdc, playerX + 8, playerY - 2) == black && GetPixel(hdc, playerX + 8, playerY - 1) == black)
 			playerY -= 2;
 		break;
 	case DOWN:
-		if (GetPixel(hdc, playerX, playerY + 16) == black && GetPixel(hdc, playerX + 15, playerY + 16) == black)
+		if (GetPixel(hdc, playerX + 8, playerY + 16) == black && GetPixel(hdc, playerX + 8, playerY + 17) == black)
 			playerY += 2;
 		break;
 	case START:
