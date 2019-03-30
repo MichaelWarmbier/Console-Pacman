@@ -35,6 +35,7 @@ COLORREF blue = RGB(0, 0, 255);
 COLORREF black = RGB(12, 12, 12);
 
 HPEN outline = CreatePen(PS_NULL, 0, black);
+HPEN blueOutline = CreatePen(PS_SOLID, 1, blue);
 HBRUSH blackBrush = CreateSolidBrush(black);
 HBRUSH yellowBrush = CreateSolidBrush(yellow);
 
@@ -354,16 +355,40 @@ void drawMap() {
 		for (int x = 0; x < mapWidth; x++) {
 			switch (map[y][x]) {
 			case 'f':
-				rotateTile(wall, 90, (x * 8) + Xshift, (y * 8) + Yshift);
+				SelectObject(hdc, blueOutline);
+				MoveToEx(hdc, (x * 8) + Xshift, (y * 8) + Yshift + 4, NULL);
+				LineTo(hdc, (x * 8) + Xshift + 8, (y * 8) + Yshift + 4);
+				MoveToEx(hdc, (x * 8) + Xshift, (y * 8) + Yshift + 7, NULL);
+				LineTo(hdc, (x * 8) + Xshift + 8, (y * 8) + Yshift + 7);
+				SelectObject(hdc, outline);
+				//rotateTile(wall, 90, (x * 8) + Xshift, (y * 8) + Yshift);
 				break;
 			case 't':
-				rotateTile(wall, 4, (x * 8) + Xshift, (y * 8) + Yshift);
+				SelectObject(hdc, blueOutline);
+				MoveToEx(hdc, (x * 8) + Xshift, (y * 8) + Yshift + 4, NULL);
+				LineTo(hdc, (x * 8) + Xshift + 8, (y * 8) + Yshift + 4);
+				MoveToEx(hdc, (x * 8) + Xshift, (y * 8) + Yshift + 1, NULL);
+				LineTo(hdc, (x * 8) + Xshift + 8, (y * 8) + Yshift + 1);
+				SelectObject(hdc, outline);
+				//rotateTile(wall, 4, (x * 8) + Xshift, (y * 8) + Yshift);
 				break;
 			case 'l':
-				rotateTile(wall, 180, (x * 8) + Xshift, (y * 8) + Yshift);
+				SelectObject(hdc, blueOutline);
+				MoveToEx(hdc, (x * 8) + Xshift + 4, (y * 8) + Yshift + 8, NULL);
+				LineTo(hdc, (x * 8) + Xshift + 4, (y * 8) + Yshift);
+				MoveToEx(hdc, (x * 8) + Xshift + 1, (y * 8) + Yshift + 8, NULL);
+				LineTo(hdc, (x * 8) + Xshift + 1, (y * 8) + Yshift);
+				SelectObject(hdc, outline);
+				//rotateTile(wall, 180, (x * 8) + Xshift, (y * 8) + Yshift);
 				break;
 			case 'r':
-				rotateTile(wall, 0, (x * 8) + Xshift, (y * 8) + Yshift);
+				SelectObject(hdc, blueOutline);
+				MoveToEx(hdc, (x * 8) + Xshift + 4, (y * 8) + Yshift + 8, NULL);
+				LineTo(hdc, (x * 8) + Xshift + 4, (y * 8) + Yshift);
+				MoveToEx(hdc, (x * 8) + Xshift + 7, (y * 8) + Yshift + 8, NULL);
+				LineTo(hdc, (x * 8) + Xshift + 7, (y * 8) + Yshift);
+				SelectObject(hdc, outline);
+				//rotateTile(wall, 0, (x * 8) + Xshift, (y * 8) + Yshift);
 				break;
 			case 'a':
 				rotateTile(wall_corner, 270, (x * 8) + Xshift + 1, (y * 8) + Yshift);
