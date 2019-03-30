@@ -224,16 +224,15 @@ int main() {
 	SelectObject(hdc, blackBrush);
 
 	// PlaySound("Sounds\\pacman_beginning.wav", GetModuleHandle(NULL), SND_FILENAME | SND_ASYNC);
-	
+
 	/*
 	HDC Animation2 = CreateCompatibleDC(NULL);
 	HBITMAP bmpF2 = (HBITMAP)LoadImage(NULL, _T("PacMan_F2.bmp"), IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
 	SelectObject(Animation2, bmpF2);
-
 	while (true)
 		BitBlt(hdc, 300, 400, 16, 16, Animation2, 0, 0, SRCCOPY);
 	*/
-	
+
 	drawMap();
 	while ((timer += (dt = FPS + wait(FPS))) && !EXIT_PROGRAM) {
 		drawClearEntity(lastPlayerInput);
@@ -335,14 +334,6 @@ void rotateTile(int sprite[8][8], int deg, int spriteX, int spriteY) {
 						SetPixelV(hdc, spriteX + x, spriteY + y + ((4 - y) * 2), blue);
 					if (y >= 4)
 						SetPixelV(hdc, spriteX + x, spriteY + y - ((y - 4) * 2), blue);
-				}
-				break;
-			case 4: // CORRECTION CASE
-				if (sprite[y][x] == 2) {
-					if (x < 4)
-						SetPixelV(hdc, spriteX + y + ((4 - y) * 2), spriteY + x + ((4 - x) * 2), blue);
-					if (x >= 4)
-						SetPixelV(hdc, spriteX + y - ((y - 4) * 2), spriteY + x - ((x - 4) * 2), blue);
 				}
 				break;
 			}
