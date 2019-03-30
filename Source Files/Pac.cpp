@@ -302,6 +302,8 @@ void logic() {
 	case START:
 		EXIT_PROGRAM = true;
 		DeleteObject(outline);
+		DeleteObject(blueOutline);
+		DeleteObject(yellowBrush);
 		DeleteObject(blackBrush);
 		ReleaseDC(GetConsoleWindow(), hdc);
 		break;
