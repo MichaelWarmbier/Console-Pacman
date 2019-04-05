@@ -1,22 +1,24 @@
 #include <iostream>
 #include <string>
-#include <windows.h>
+#include <Windows.h>
 #include <tchar.h>
 #include <conio.h>
 #include <chrono>
+
+#include "SpriteSheet.h"
 
 #pragma comment(lib, "winmm.lib") // Support for playing audio
 
 using namespace std;
 
-HDC hdc = GetDC(GetConsoleWindow());
+SpriteSheet sprites;
 
-enum keyboardInput { UP, DOWN, LEFT, RIGHT, START, NONE };
-keyboardInput playerInput = NONE, lastPlayerInput = NONE;
-
-void drawClearEntity(keyboardInput playerInput);
 void input();
 void logic();
+
+int f_count = 9;
+void animatePacman(int f_count);
+
 bool keyIsDown(char key, bool pressed = true, bool held = true);
 double getTime(); // Returns timer with nanosecond precision
 double getTimeSince(double); // Returns timer with nanosecond precision since a point in time
@@ -26,80 +28,16 @@ void ShowConsoleCursor(bool);
 void rotateTile(int sprite[8][8], int, int, int);
 void drawMap();
 
-int f_count = 9;
+
 int Xshift = 40, Yshift = 40;
 bool EXIT_PROGRAM = false;
 
-COLORREF yellow = RGB(255, 255, 0);
-COLORREF blue = RGB(0, 0, 255);
-COLORREF black = RGB(12, 12, 12);
-
-HPEN outline = CreatePen(PS_NULL, 0, black);
-HPEN blueOutline = CreatePen(PS_SOLID, 1, blue);
-HBRUSH blackBrush = CreateSolidBrush(black);
-HBRUSH yellowBrush = CreateSolidBrush(yellow);
-
-int playerX = 60, playerY = 60;
-int pacX = playerX / 8, pacY = playerY / 8; // Position of Pacman on the map array.
+int pacX = sprites.draw.playerX / 8, pacY = sprites.draw.playerY / 8; // Position of Pacman on the map array.
 const int mapWidth = 29, mapHeight = 31;
 // Collision point values
 
 double FPS = 1.0 / 90.0;
 double timer = 0, dt = 0;
-
-// Support for all data types of 16x16 sprites
-template<typename T>
-void rotate(T sprite[16][16], int deg) {
-	for (int y = 0; y < 16; y++) {
-		for (int x = 0; x < 16; x++) {
-			switch (deg) {
-			case 0:
-				if (sprite[y][x] == 1)
-					SetPixelV(hdc, playerX + x, playerY + y, yellow);
-				break;
-			case 90:
-				if (sprite[y][x] == 1)
-					SetPixelV(hdc, playerX + y, playerY + x, yellow);
-				break;
-			case 180:
-				if (sprite[y][x] == 1) {
-					if (x < 8)
-						SetPixelV(hdc, playerX + x + ((8 - x) * 2), playerY + y, yellow);
-					if (x >= 8)
-						SetPixelV(hdc, playerX + x - ((x - 8) * 2), playerY + y, yellow);
-				}
-				break;
-			case 270:
-				if (sprite[y][x] == 1) {
-					if (x < 8)
-						SetPixelV(hdc, playerX + y + ((8 - y) * 2), playerY + x + ((8 - x) * 2), yellow);
-					if (x >= 8)
-						SetPixelV(hdc, playerX + y - ((y - 8) * 2), playerY + x - ((x - 8) * 2), yellow);
-				}
-				break;
-			}
-		}
-	}
-}
-
-template<typename T>
-void drawEntity(T sprite[16][16]) {
-	switch (lastPlayerInput) {
-	case RIGHT:
-	case NONE:
-		rotate(sprite, 0);
-		break;
-	case DOWN:
-		rotate(sprite, 90);
-		break;
-	case LEFT:
-		rotate(sprite, 180);
-		break;
-	case UP:
-		rotate(sprite, 270);
-		break;
-	}
-}
 
 // MAP DRAWING GUIDE
 // a = TOP LEFT CORNER, b = TOP RIGHT CORNER, c = BOTTOM LEFT CORNER, d = BOTTOM RIGHT CORNER
@@ -139,89 +77,14 @@ char map[mapHeight][mapWidth] = {
 	"cffffffffffffffffffffffffffd"
 
 };
-bool PacMan_F1[16][16] = {
-	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-	0,0,0,0,0,0,1,1,1,1,1,0,0,0,0,0,
-	0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0,
-	0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,
-	0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,
-	0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,
-	0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,
-	0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,
-	0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,
-	0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,
-	0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,
-	0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,
-	0,0,0,1,1,1,1,1,1,1,1,1,1,0,0,0,
-	0,0,0,0,0,0,1,1,1,1,1,0,0,0,0,0,
-	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-};
-
-bool PacMan_F2[16][16] = {
-	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-	0,0,0,0,0,0,1,1,1,1,1,0,0,0,0,0,
-	0,0,0,1,1,1,1,1,1,1,1,1,1,1,0,0,
-	0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,
-	0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,
-	0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,
-	0,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,
-	0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,
-	0,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,
-	0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,
-	0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,
-	0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,
-	0,0,0,1,1,1,1,1,1,1,1,1,1,1,0,0,
-	0,0,0,0,0,0,1,1,1,1,1,0,0,0,0,0,
-	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-};
-
-bool PacMan_F3[16][16] = {
-	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-	0,0,0,0,0,1,1,1,1,1,1,1,0,0,0,0,
-	0,0,0,1,1,1,1,1,1,1,1,1,0,0,0,0,
-	0,0,1,1,1,1,1,1,1,1,1,0,0,0,0,0,
-	0,0,1,1,1,1,1,1,1,1,0,0,0,0,0,0,
-	0,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,
-	0,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,
-	0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,
-	0,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,
-	0,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,
-	0,0,1,1,1,1,1,1,1,1,0,0,0,0,0,0,
-	0,0,1,1,1,1,1,1,1,1,1,0,0,0,0,0,
-	0,0,0,1,1,1,1,1,1,1,1,1,0,0,0,0,
-	0,0,0,0,0,1,1,1,1,1,1,1,0,0,0,0,
-	0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-};
-
-int wall[8][8] = {
-	0,0,0,0,2,0,0,2,
-	0,0,0,0,2,0,0,2,
-	0,0,0,0,2,0,0,2,
-	0,0,0,0,2,0,0,2,
-	0,0,0,0,2,0,0,2,
-	0,0,0,0,2,0,0,2,
-	0,0,0,0,2,0,0,2,
-	0,0,0,0,2,0,0,2,
-};
-
-int wall_corner[8][8] = {
-	2,0,0,2,0,0,0,0,
-	2,0,0,2,0,0,0,0,
-	2,0,0,2,0,0,0,0,
-	2,0,0,0,2,0,0,0,
-	0,2,0,0,0,2,2,2,
-	0,2,0,0,0,0,0,0,
-	0,0,2,2,0,0,0,0,
-	0,0,0,0,2,2,2,2,
-};
 
 int main() {
 	int gameWidth = 69, gameHeight = 21;
 	system(("MODE " + to_string(gameWidth) + ", " + to_string(gameHeight)).c_str());
 	ShowConsoleCursor(false);
 
-	SelectObject(hdc, outline);
-	SelectObject(hdc, blackBrush);
+	SelectObject(sprites.draw.hdc, sprites.draw.outlinePen);
+	SelectObject(sprites.draw.hdc, sprites.draw.blackBrush);
 
 	// PlaySound("Sounds\\pacman_beginning.wav", GetModuleHandle(NULL), SND_FILENAME | SND_ASYNC);
 
@@ -235,14 +98,8 @@ int main() {
 
 	drawMap();
 	while ((timer += (dt = FPS + wait(FPS))) && !EXIT_PROGRAM) {
-		drawClearEntity(lastPlayerInput);
-		if (f_count == 1 || f_count == 2 || f_count == 3)
-			drawEntity(PacMan_F1);
-		else if (f_count == 4 || f_count == 5 || f_count == 6)
-			drawEntity(PacMan_F2);
-		else if (f_count == 7 || f_count == 8 || f_count == 9)
-			drawEntity(PacMan_F3);
-
+		sprites.draw.drawClearEntity(sprites.draw.lastPlayerInput);
+		animatePacman(f_count);
 		drawMap();
 		input();
 		logic();
@@ -251,30 +108,30 @@ int main() {
 }
 
 void input() {
-	if (playerInput != NONE && playerInput != START)
-		lastPlayerInput = playerInput;
-	playerInput = NONE;
+	if (sprites.draw.playerInput != DrawAndRotate::NONE && sprites.draw.playerInput != DrawAndRotate::START)
+		sprites.draw.lastPlayerInput = sprites.draw.playerInput;
+	sprites.draw.playerInput = DrawAndRotate::NONE;
 
 	char enterKey = 13;
 
 	if (keyIsDown(enterKey, true, false))
-		playerInput = START;
+		sprites.draw.playerInput = DrawAndRotate::START;
 
 	if (keyIsDown('A') && !keyIsDown('D')) {
-		playerInput = LEFT;
+		sprites.draw.playerInput = DrawAndRotate::LEFT;
 	}
 	else if (keyIsDown('D') && !keyIsDown('A')) {
-		playerInput = RIGHT;
+		sprites.draw.playerInput = DrawAndRotate::RIGHT;
 	}
 	else if (keyIsDown('W') && !keyIsDown('S')) {
-		playerInput = UP;
+		sprites.draw.playerInput = DrawAndRotate::UP;
 	}
 	else if (keyIsDown('S') && !keyIsDown('W')) {
-		playerInput = DOWN;
+		sprites.draw.playerInput = DrawAndRotate::DOWN;
 	}
 
-	if (playerInput != NONE)
-		lastPlayerInput = playerInput;
+	if (sprites.draw.playerInput != DrawAndRotate::NONE)
+		sprites.draw.lastPlayerInput = sprites.draw.playerInput;
 }
 
 void logic() {
@@ -282,30 +139,25 @@ void logic() {
 	if (f_count == 10)
 		f_count = 0;
 
-	switch (lastPlayerInput) {
-	case LEFT:
-		if (GetPixel(hdc, playerX - 2, playerY + 8) == black && GetPixel(hdc, playerX - 1, playerY + 8) == black)
-			playerX -= 2;
+	switch (sprites.draw.lastPlayerInput) {
+	case DrawAndRotate::LEFT:
+		if (GetPixel(sprites.draw.hdc, sprites.draw.playerX - 2, sprites.draw.playerY + 8) == sprites.draw.black && GetPixel(sprites.draw.hdc, sprites.draw.playerX - 1, sprites.draw.playerY + 8) == sprites.draw.black)
+			sprites.draw.playerX -= 2;
 		break;
-	case RIGHT:
-		if (GetPixel(hdc, playerX + 16, playerY + 8) == black && GetPixel(hdc, playerX + 17, playerY + 8) == black)
-			playerX += 2;
+	case DrawAndRotate::RIGHT:
+		if (GetPixel(sprites.draw.hdc, sprites.draw.playerX + 16, sprites.draw.playerY + 8) == sprites.draw.black && GetPixel(sprites.draw.hdc, sprites.draw.playerX + 17, sprites.draw.playerY + 8) == sprites.draw.black)
+			sprites.draw.playerX += 2;
 		break;
-	case UP:
-		if (GetPixel(hdc, playerX + 8, playerY - 2) == black && GetPixel(hdc, playerX + 8, playerY - 1) == black)
-			playerY -= 2;
+	case DrawAndRotate::UP:
+		if (GetPixel(sprites.draw.hdc, sprites.draw.playerX + 8, sprites.draw.playerY - 2) == sprites.draw.black && GetPixel(sprites.draw.hdc, sprites.draw.playerX + 8, sprites.draw.playerY - 1) == sprites.draw.black)
+			sprites.draw.playerY -= 2;
 		break;
-	case DOWN:
-		if (GetPixel(hdc, playerX + 8, playerY + 16) == black && GetPixel(hdc, playerX + 8, playerY + 17) == black)
-			playerY += 2;
+	case DrawAndRotate::DOWN:
+		if (GetPixel(sprites.draw.hdc, sprites.draw.playerX + 8, sprites.draw.playerY + 16) == sprites.draw.black && GetPixel(sprites.draw.hdc, sprites.draw.playerX + 8, sprites.draw.playerY + 17) == sprites.draw.black)
+			sprites.draw.playerY += 2;
 		break;
-	case START:
+	case DrawAndRotate::START:
 		EXIT_PROGRAM = true;
-		DeleteObject(outline);
-		DeleteObject(blueOutline);
-		DeleteObject(yellowBrush);
-		DeleteObject(blackBrush);
-		ReleaseDC(GetConsoleWindow(), hdc);
 		break;
 	}
 }
@@ -316,26 +168,26 @@ void rotateTile(int sprite[8][8], int deg, int spriteX, int spriteY) {
 			switch (deg) {
 			case 0:
 				if (sprite[y][x] == 2)
-					SetPixelV(hdc, spriteX + x, spriteY + y, blue);
+					SetPixelV(sprites.draw.hdc, spriteX + x, spriteY + y, sprites.draw.blue);
 				break;
 			case 90:
 				if (sprite[y][x] == 2)
-					SetPixelV(hdc, spriteX + y, spriteY + x, blue);
+					SetPixelV(sprites.draw.hdc, spriteX + y, spriteY + x, sprites.draw.blue);
 				break;
 			case 180:
 				if (sprite[y][x] == 2) {
 					if (x < 4)
-						SetPixelV(hdc, spriteX + x + ((4 - x) * 2), spriteY + y, blue);
+						SetPixelV(sprites.draw.hdc, spriteX + x + ((4 - x) * 2), spriteY + y, sprites.draw.blue);
 					if (x >= 4)
-						SetPixelV(hdc, spriteX + x - ((x - 4) * 2), spriteY + y, blue);
+						SetPixelV(sprites.draw.hdc, spriteX + x - ((x - 4) * 2), spriteY + y, sprites.draw.blue);
 				}
 				break;
 			case 270:
 				if (sprite[y][x] == 2) {
 					if (y < 4)
-						SetPixelV(hdc, spriteX + x, spriteY + y + ((4 - y) * 2), blue);
+						SetPixelV(sprites.draw.hdc, spriteX + x, spriteY + y + ((4 - y) * 2), sprites.draw.blue);
 					if (y >= 4)
-						SetPixelV(hdc, spriteX + x, spriteY + y - ((y - 4) * 2), blue);
+						SetPixelV(sprites.draw.hdc, spriteX + x, spriteY + y - ((y - 4) * 2), sprites.draw.blue);
 				}
 				break;
 			}
@@ -348,82 +200,88 @@ void drawMap() {
 		for (int x = 0; x < mapWidth; x++) {
 			switch (map[y][x]) {
 			case 'f':
-				SelectObject(hdc, blueOutline);
-				MoveToEx(hdc, (x * 8) + Xshift, (y * 8) + Yshift + 4, NULL);
-				LineTo(hdc, (x * 8) + Xshift + 8, (y * 8) + Yshift + 4);
-				MoveToEx(hdc, (x * 8) + Xshift, (y * 8) + Yshift + 7, NULL);
-				LineTo(hdc, (x * 8) + Xshift + 8, (y * 8) + Yshift + 7);
-				SelectObject(hdc, outline);
+				SelectObject(sprites.draw.hdc, sprites.draw.blueOutlinePen);
+				MoveToEx(sprites.draw.hdc, (x * 8) + Xshift, (y * 8) + Yshift + 4, NULL);
+				LineTo(sprites.draw.hdc, (x * 8) + Xshift + 8, (y * 8) + Yshift + 4);
+				MoveToEx(sprites.draw.hdc, (x * 8) + Xshift, (y * 8) + Yshift + 7, NULL);
+				LineTo(sprites.draw.hdc, (x * 8) + Xshift + 8, (y * 8) + Yshift + 7);
+				SelectObject(sprites.draw.hdc, sprites.draw.outlinePen);
 				//rotateTile(wall, 90, (x * 8) + Xshift, (y * 8) + Yshift);
 				break;
 			case 't':
-				SelectObject(hdc, blueOutline);
-				MoveToEx(hdc, (x * 8) + Xshift, (y * 8) + Yshift + 4, NULL);
-				LineTo(hdc, (x * 8) + Xshift + 8, (y * 8) + Yshift + 4);
-				MoveToEx(hdc, (x * 8) + Xshift, (y * 8) + Yshift + 1, NULL);
-				LineTo(hdc, (x * 8) + Xshift + 8, (y * 8) + Yshift + 1);
-				SelectObject(hdc, outline);
+				SelectObject(sprites.draw.hdc, sprites.draw.blueOutlinePen);
+				MoveToEx(sprites.draw.hdc, (x * 8) + Xshift, (y * 8) + Yshift + 4, NULL);
+				LineTo(sprites.draw.hdc, (x * 8) + Xshift + 8, (y * 8) + Yshift + 4);
+				MoveToEx(sprites.draw.hdc, (x * 8) + Xshift, (y * 8) + Yshift + 1, NULL);
+				LineTo(sprites.draw.hdc, (x * 8) + Xshift + 8, (y * 8) + Yshift + 1);
+				SelectObject(sprites.draw.hdc, sprites.draw.outlinePen);
 				//rotateTile(wall, 4, (x * 8) + Xshift, (y * 8) + Yshift);
 				break;
 			case 'l':
-				SelectObject(hdc, blueOutline);
-				MoveToEx(hdc, (x * 8) + Xshift + 4, (y * 8) + Yshift + 8, NULL);
-				LineTo(hdc, (x * 8) + Xshift + 4, (y * 8) + Yshift);
-				MoveToEx(hdc, (x * 8) + Xshift + 1, (y * 8) + Yshift + 8, NULL);
-				LineTo(hdc, (x * 8) + Xshift + 1, (y * 8) + Yshift);
-				SelectObject(hdc, outline);
+				SelectObject(sprites.draw.hdc, sprites.draw.blueOutlinePen);
+				MoveToEx(sprites.draw.hdc, (x * 8) + Xshift + 4, (y * 8) + Yshift + 8, NULL);
+				LineTo(sprites.draw.hdc, (x * 8) + Xshift + 4, (y * 8) + Yshift);
+				MoveToEx(sprites.draw.hdc, (x * 8) + Xshift + 1, (y * 8) + Yshift + 8, NULL);
+				LineTo(sprites.draw.hdc, (x * 8) + Xshift + 1, (y * 8) + Yshift);
+				SelectObject(sprites.draw.hdc, sprites.draw.outlinePen);
 				//rotateTile(wall, 180, (x * 8) + Xshift, (y * 8) + Yshift);
 				break;
 			case 'r':
-				SelectObject(hdc, blueOutline);
-				MoveToEx(hdc, (x * 8) + Xshift + 4, (y * 8) + Yshift + 8, NULL);
-				LineTo(hdc, (x * 8) + Xshift + 4, (y * 8) + Yshift);
-				MoveToEx(hdc, (x * 8) + Xshift + 7, (y * 8) + Yshift + 8, NULL);
-				LineTo(hdc, (x * 8) + Xshift + 7, (y * 8) + Yshift);
-				SelectObject(hdc, outline);
+				SelectObject(sprites.draw.hdc, sprites.draw.blueOutlinePen);
+				MoveToEx(sprites.draw.hdc, (x * 8) + Xshift + 4, (y * 8) + Yshift + 8, NULL);
+				LineTo(sprites.draw.hdc, (x * 8) + Xshift + 4, (y * 8) + Yshift);
+				MoveToEx(sprites.draw.hdc, (x * 8) + Xshift + 7, (y * 8) + Yshift + 8, NULL);
+				LineTo(sprites.draw.hdc, (x * 8) + Xshift + 7, (y * 8) + Yshift);
+				SelectObject(sprites.draw.hdc, sprites.draw.outlinePen);
 				//rotateTile(wall, 0, (x * 8) + Xshift, (y * 8) + Yshift);
 				break;
 			case 'a':
-				rotateTile(wall_corner, 270, (x * 8) + Xshift + 1, (y * 8) + Yshift);
+				rotateTile(sprites.wall_corner, 270, (x * 8) + Xshift + 1, (y * 8) + Yshift);
 				break;
 			case 'b':
-				rotateTile(wall_corner, 90, (x * 8) + Xshift, (y * 8) + Yshift + 1);
+				rotateTile(sprites.wall_corner, 90, (x * 8) + Xshift, (y * 8) + Yshift + 1);
 				break;
 			case 'c':
-				rotateTile(wall_corner, 0, (x * 8) + Xshift + 1, (y * 8) + Yshift);
+				rotateTile(sprites.wall_corner, 0, (x * 8) + Xshift + 1, (y * 8) + Yshift);
 				break;
 			case 'd':
-				rotateTile(wall_corner, 180, (x * 8) - 1 + Xshift, (y * 8) + Yshift);
+				rotateTile(sprites.wall_corner, 180, (x * 8) - 1 + Xshift, (y * 8) + Yshift);
 				break;
 			case 'A':
-				rotateTile(wall_corner, 270, (x * 8) + Xshift + 1, (y * 8) + Yshift + 3);
+				rotateTile(sprites.wall_corner, 270, (x * 8) + Xshift + 1, (y * 8) + Yshift + 3);
 				break;
 			case 'B':
-				rotateTile(wall_corner, 90, (x * 8) + Xshift, (y * 8) + Yshift + 4);
+				rotateTile(sprites.wall_corner, 90, (x * 8) + Xshift, (y * 8) + Yshift + 4);
 				break;
 			case 'C':
-				rotateTile(wall_corner, 0, (x * 8) + Xshift + 1, (y * 8) + Yshift - 3);
+				rotateTile(sprites.wall_corner, 0, (x * 8) + Xshift + 1, (y * 8) + Yshift - 3);
 				break;
 			case 'D':
-				rotateTile(wall_corner, 180, (x * 8) - 1 + Xshift, (y * 8) + Yshift - 3);
+				rotateTile(sprites.wall_corner, 180, (x * 8) - 1 + Xshift, (y * 8) + Yshift - 3);
 				break;
 			}
 		}
 	}
 }
 
-void drawClearEntity(keyboardInput lastPlayerInput) {
-	int xOffset = 0, yOffset = 0;
-	if (lastPlayerInput == LEFT)
-		xOffset = 2;
-	else if (lastPlayerInput == RIGHT)
-		xOffset = -2;
-	else if (lastPlayerInput == UP)
-		yOffset = 2;
-	else if (lastPlayerInput == DOWN)
-		yOffset = -2;
-
-	Rectangle(hdc, playerX + xOffset, playerY + yOffset, playerX + xOffset + 17, playerY + yOffset + 17);
+void animatePacman(int f_count) {
+	switch (f_count) {
+	case 1:
+	case 2:
+	case 3:
+		sprites.draw.drawEntity(sprites.PacMan_F1);
+		break;
+	case 4:
+	case 5:
+	case 6:
+		sprites.draw.drawEntity(sprites.PacMan_F2);
+		break;
+	case 7:
+	case 8:
+	case 9:
+		sprites.draw.drawEntity(sprites.PacMan_F3);
+		break;
+	}
 }
 
 bool keyIsDown(char key, bool pressed, bool held) {
