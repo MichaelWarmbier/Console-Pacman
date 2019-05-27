@@ -1,8 +1,11 @@
-#pragma once
+#ifndef DATASTRUCTURES_H
+#define DATASTRUCTURES_H
+
 #include <iostream>
 #include <Windows.h>
 #include <chrono>
 #include <conio.h>
+
 using namespace std;
 using namespace chrono;
 
@@ -10,7 +13,7 @@ double FPS = 1.0 / 60.0; // Frames
 double timer = 0, dt = 0;
 
 // Board dimensions
-const int mapWidth = 28; 
+const int mapWidth = 28;
 const int mapHeight = 36;
 
 // Input enumerator
@@ -57,14 +60,14 @@ int Map[mapHeight][mapWidth]{
 };
 
 class TileSprites { // Class for functions and variables related to map tiles
-	public:
+public:
 	// Takes an argument of the sprite, it's rotation and it's position and draws
 	void DrawSprite(const int sprite[8][8], int rotation_value, int X_position, int Y_position);
 
 	const HDC hdc = GetDC(GetConsoleWindow());
 
 	const int spriteSize = 8; // Variable relating to sprite size
-	
+
 	// Wall Tiles Sprite Sheet //
 
 	const int wall[8][8] = {
@@ -179,8 +182,11 @@ class TileSprites { // Class for functions and variables related to map tiles
 		5,0,5,0,5,0,5,0,
 	};
 };
+
 class Pacman {
 public:
+	Pacman();
+	~Pacman();
 	void ChangePhase(); // Increments Pacmans phase and defines it's bounds
 	// Takes an argument of the sprite, it's rotation value, and it's position and draws
 	void DrawPacman(const int sprite[8][8], int rotation_value, int X_position, int Y_position);
@@ -189,6 +195,13 @@ public:
 	int GetRotationValue(input dir); // Gets direction pacman should face given direction
 
 	const HDC hdc = GetDC(GetConsoleWindow());
+	COLORREF black = RGB(12, 12, 12);
+	COLORREF white = RGB(255, 255, 255);
+	COLORREF blue = RGB(0, 0, 255);
+	HBRUSH blackBrush = CreateSolidBrush(black);
+	HBRUSH whiteBrush = CreateSolidBrush(white);
+	HPEN outlinePen = CreatePen(PS_NULL, 0, black);
+	HPEN blueOutlinePen = CreatePen(PS_SOLID, 1, blue);
 
 	const int spriteSize = 8; // Constant sprite size for Pacman sprites
 
@@ -245,3 +258,5 @@ public:
 		9,9,9,9,9,9,9,9,
 	};
 };
+
+#endif
