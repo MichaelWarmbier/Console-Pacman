@@ -16,8 +16,8 @@
 #define TIMER_STOP \
     QueryPerformanceCounter(&t2); \
     elapsedTime=(float)(t2.QuadPart-t1.QuadPart)/frequency.QuadPart; \
-	SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), {30, 1}); \
-    wcout << 1.0 / elapsedTime << L" fps" << endl; \
+	SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), {10, 1}); \
+    wcout << 1.0 / elapsedTime << L" fps"; \
 	SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), {0, 1});
 
 void GameDraw(); // Draws game
@@ -43,13 +43,13 @@ void GameDraw() { // -- Draw
 
 void GameInput() { // -- Get Input
 	// Switches game input based off last button pressed, does not reset input each frame
-	if (KeyIsDown('W', true, true) && !Pac.CollisionCheck(UP))
+	if (KeyIsDown('W', true, true) && !KeyIsDown('S', true, true) && !Pac.CollisionCheck(UP))
 		game_input = UP;
-	else if (KeyIsDown('S', true, true) && !Pac.CollisionCheck(DOWN))
+	else if (KeyIsDown('S', true, true) && !KeyIsDown('W', true, true) && !Pac.CollisionCheck(DOWN))
 		game_input = DOWN;
-	else if (KeyIsDown('A', true, true) && !Pac.CollisionCheck(LEFT))
+	else if (KeyIsDown('A', true, true) && !KeyIsDown('D', true, true) && !Pac.CollisionCheck(LEFT))
 		game_input = LEFT;
-	else if (KeyIsDown('D', true, true) && !Pac.CollisionCheck(RIGHT))
+	else if (KeyIsDown('D', true, true) && !KeyIsDown('A', true, true) && !Pac.CollisionCheck(RIGHT))
 		game_input = RIGHT;
 	if (game_input != NONE && Pac.adjpx != 0) {
 		// Adjusts pacman if no input has been made, centering him at origin
@@ -75,7 +75,7 @@ Pacman::~Pacman() {
 	DeleteDC(hdc);
 }
 
-void Pacman::ChangePhase() {	
+void Pacman::ChangePhase() {
 	currentPhase++;
 	if (currentPhase > 3)
 		currentPhase = 1;
@@ -171,11 +171,13 @@ void DrawMap(int s_x, int s_y) {
 			if (Map[y][x] == 98) {
 				if (!Pac.clearorigin) {
 					SelectObject(Pac.hdc, Pac.blackBrush);
-					Rectangle(Pac.hdc, s_x + (x * 8) + Pac.adjpx, s_y + (y * 8), s_x + (x * 8) + 10, s_y + (y * 8) + 10);
+					Rectangle(Pac.hdc, s_x + (x * 8) + Pac.adjpx, s_y + (y * 8) + 1, s_x + (x * 8) + 10, s_y + (y * 8) + 11);
 					//Pac.DrawPacman(Pac.clear, Pac.GetRotationValue(game_input), s_x + (x * 8) + Pac.adjpx, s_y + (y * 8) + 1);
 				}
 				else {
-					Pac.DrawPacman(Pac.clear, Pac.GetRotationValue(game_input), s_x + (x * 8) + 4, s_y + (y * 8) + 1);
+					SelectObject(Pac.hdc, Pac.blackBrush);
+					Rectangle(Pac.hdc, s_x + (x * 8) + Pac.adjpx, s_y + (y * 8), s_x + (x * 8) + 12, s_y + (y * 8) + 10);
+					//Pac.DrawPacman(Pac.clear, Pac.GetRotationValue(game_input), s_x + (x * 8) + 4, s_y + (y * 8) + 1);
 					Pac.clearorigin = false;
 				}
 			}
