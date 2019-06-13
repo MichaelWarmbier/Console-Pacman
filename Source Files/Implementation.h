@@ -77,7 +77,7 @@ Pacman::~Pacman() {
 
 void Pacman::ChangePhase() {
 	currentPhase++;
-	if (currentPhase > 3)
+	if (currentPhase > 6)
 		currentPhase = 1;
 }
 
@@ -166,7 +166,7 @@ int Pacman::GetRotationValue(input dir) {
 void DrawMap(int s_x, int s_y) {
 	for (int y = 0; y < mapHeight; y++) {
 		for (int x = 0; x < mapWidth; x++) {
-			if (Map[y][x] == 00)
+			if (Map[y][x] == 00 || Map[y][x] == 69)
 				continue;
 			if (Map[y][x] == 98) {
 				if (!Pac.clearorigin) {
@@ -184,12 +184,15 @@ void DrawMap(int s_x, int s_y) {
 			else if (Map[y][x] == 99) {
 				switch (Pac.currentPhase) {
 				case 1:
+				case 2:
 					Pac.DrawPacman(Pac.P1, Pac.GetRotationValue(game_input), s_x + (x * 8) + Pac.adjpx, s_y + (y * 8) + 1);
 					break;
-				case 2:
+				case 3:
+				case 4:
 					Pac.DrawPacman(Pac.P2, Pac.GetRotationValue(game_input), s_x + (x * 8) + Pac.adjpx, s_y + (y * 8) + 1);
 					break;
-				case 3:
+				case 5:
+				case 6:
 					Pac.DrawPacman(Pac.P3, Pac.GetRotationValue(game_input), s_x + (x * 8) + Pac.adjpx, s_y + (y * 8) + 1);
 					break;
 				}
@@ -300,6 +303,36 @@ void DrawMap(int s_x, int s_y) {
 				Game.DrawSprite(Game.wall_corner_thick, 3, s_x + (x * 8), s_y + (y * 8));
 			else if (Map[y][x] == 32)
 				Game.DrawSprite(Game.wall_corner_thick, 2, s_x + (x * 8), s_y + (y * 8));
+			else if (Map[y][x] == 50) {
+				SelectObject(Pac.hdc, Pac.blueOutlinePen);
+				SelectObject(Pac.hdc, GetStockObject(NULL_BRUSH));
+				RoundRect(Pac.hdc, s_x + (x * 8) + 4, s_y + (y * 8) + 4, s_x + (x * 8) + 36, s_y + (y * 8) + 20, 3, 3);
+				SelectObject(Pac.hdc, Pac.outlinePen);
+			}
+			else if (Map[y][x] == 51) {
+				SelectObject(Pac.hdc, Pac.blueOutlinePen);
+				SelectObject(Pac.hdc, GetStockObject(NULL_BRUSH));
+				RoundRect(Pac.hdc, s_x + (x * 8) + 4, s_y + (y * 8) + 4, s_x + (x * 8) + 28, s_y + (y * 8) + 20, 3, 3);
+				SelectObject(Pac.hdc, Pac.outlinePen);
+			}
+			else if (Map[y][x] == 52) {
+				SelectObject(Pac.hdc, Pac.blueOutlinePen);
+				SelectObject(Pac.hdc, GetStockObject(NULL_BRUSH));
+				RoundRect(Pac.hdc, s_x + (x * 8) + 4, s_y + (y * 8) + 4, s_x + (x * 8) + 28, s_y + (y * 8) + 12, 3, 3);
+				SelectObject(Pac.hdc, Pac.outlinePen);
+			}
+			else if (Map[y][x] == 53) {
+				SelectObject(Pac.hdc, Pac.blueOutlinePen);
+				SelectObject(Pac.hdc, GetStockObject(NULL_BRUSH));
+				RoundRect(Pac.hdc, s_x + (x * 8) + 4, s_y + (y * 8) + 4, s_x + (x * 8) + 12, s_y + (y * 8) + 36, 3, 3);
+				SelectObject(Pac.hdc, Pac.outlinePen);
+			}
+			else if (Map[y][x] == 54) {
+				SelectObject(Pac.hdc, Pac.blueOutlinePen);
+				SelectObject(Pac.hdc, GetStockObject(NULL_BRUSH));
+				RoundRect(Pac.hdc, s_x + (x * 8) + 4, s_y + (y * 8) + 4, s_x + (x * 8) + 36, s_y + (y * 8) + 12, 3, 3);
+				SelectObject(Pac.hdc, Pac.outlinePen);
+			}
 			else
 				Game.DrawSprite(Game.error, 1, s_x + (x * 8), s_y + (y * 8));
 		}
