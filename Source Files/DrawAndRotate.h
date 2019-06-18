@@ -1,116 +1,247 @@
-#ifndef  DRAWANDROTATE_H
-#define DRAWANDROTATE_H
+#ifndef DATASTRUCTURES_H
+#define DATASTRUCTURES_H
 
+#include <iostream>
+#include <iomanip>
 #include <Windows.h>
+#include <chrono>
+#include <conio.h>
 
-class DrawAndRotate {
+using namespace std;
+using namespace chrono;
+
+// FPS related
+double FPS = 1.0 / 60.0;
+double timer = 0, dt = 0;
+
+// Board dimensions
+const int mapWidth = 28;
+const int mapHeight = 36;
+
+// Input enumerator
+enum input { LEFT, RIGHT, UP, DOWN, NONE, START };
+input game_input = NONE;
+
+// Game variables
+enum state {BEFORE, DURING, AFTER, LIMBO};
+state GameState = DURING;
+enum mode {CHASE, SCATTER, FEAR};
+mode GhostMode = CHASE;
+
+int CollectedDots = 0;
+
+bool ShowFPS = false;
+bool ShowCollectedDots = false;
+bool ShowNodes = false;
+
+// Game Map
+int Map[mapHeight][mapWidth]{
+	00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,
+	00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,
+	00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,
+	06,03,03,03,03,03,03,03,03,03,03,03,03,12,13,03,03,03,03,03,03,03,03,03,03,03,03,04,
+	02,01,01,01,01,01,01,01,01,01,01,01,01,24,25,01,01,01,01,01,01,01,01,01,01,01,01,02,
+	02,01,31,26,26,32,01,31,26,26,26,32,01,24,25,01,31,26,26,26,32,01,31,26,26,32,01,02,
+	02,90,24,00,00,25,01,24,00,00,00,25,01,24,25,01,24,00,00,00,25,01,24,00,00,25,90,02,
+	02,01,29,28,28,30,01,29,28,28,28,30,01,29,30,01,29,28,28,28,30,01,29,28,28,30,01,02,
+	02,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,02,
+	02,01,31,26,26,32,01,31,32,01,31,26,26,26,26,26,26,32,01,31,32,01,31,26,26,32,01,02,
+	02,01,29,28,28,30,01,24,25,01,29,28,28,20,21,28,28,30,01,24,25,01,29,28,28,30,01,02,
+	02,01,01,01,01,01,01,24,25,01,01,01,01,24,25,01,01,01,01,24,25,01,01,01,01,01,01,02,
+	05,03,03,03,03,04,01,24,23,26,26,32,00,24,25,00,31,26,26,22,25,01,06,03,03,03,03,11,
+	00,00,00,00,00,02,01,24,21,28,28,30,00,29,30,00,29,28,28,20,25,01,02,00,00,00,00,00,
+	00,00,00,00,00,02,01,24,25,00,00,00,00,00,00,00,00,00,00,24,25,01,02,00,00,00,00,00,
+	00,00,00,00,00,02,01,24,25,00,07,03,03,27,27,03,03,33,00,24,25,01,02,00,00,00,00,00,
+	03,03,03,03,03,11,01,29,30,00,02,00,00,00,00,00,00,02,00,29,30,01,05,03,03,03,03,03,
+	00,00,00,00,00,00,01,00,00,00,02,00,00,00,00,00,00,02,00,00,00,01,00,00,00,00,00,00, // Portal
+	03,03,03,03,03,04,01,31,32,00,02,00,00,00,00,00,00,02,00,31,32,01,06,03,03,03,03,03,
+	00,00,00,00,00,02,01,24,25,00,34,03,03,03,03,03,03,10,00,24,25,01,02,00,00,00,00,00,
+	00,00,00,00,00,02,01,24,25,00,00,00,00,00,00,00,00,00,00,24,25,01,02,00,00,00,00,00,
+	00,00,00,00,00,02,01,24,25,00,31,26,26,26,26,26,26,32,00,24,25,01,02,00,00,00,00,00,
+	06,03,03,03,03,11,01,29,30,00,29,28,28,20,21,28,28,30,00,29,30,01,05,03,03,03,03,04,
+	02,01,01,01,01,01,01,01,01,01,01,01,01,24,25,01,01,01,01,01,01,01,01,01,01,01,01,02,
+	02,01,31,26,26,32,01,31,26,26,26,32,01,24,25,01,31,26,26,26,32,01,31,26,26,32,01,02,
+	02,01,29,28,20,25,01,29,28,28,28,30,01,29,30,01,29,28,28,28,30,01,24,21,28,30,01,02,
+	02,90,01,01,24,25,01,01,01,01,01,01,01,99,00,01,01,01,01,01,01,01,24,25,01,01,90,02,
+	18,26,32,01,24,25,01,31,32,01,31,26,26,26,26,26,26,32,01,31,32,01,24,25,01,31,26,17,
+	16,28,30,01,29,30,01,24,25,01,29,28,28,20,21,28,28,30,01,24,25,01,29,30,01,29,28,19,
+	02,01,01,01,01,01,01,24,25,01,01,01,01,24,25,01,01,01,01,24,25,01,01,01,01,01,01,02,
+	02,01,31,26,26,26,26,15,14,26,26,32,01,24,25,01,31,26,26,15,14,26,26,26,26,32,01,02,
+	02,01,29,28,28,28,28,28,28,28,28,30,01,29,30,01,29,28,28,28,28,28,28,28,28,30,01,02,
+	02,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,02,
+	05,03,03,03,03,03,03,03,03,03,03,03,03,03,03,03,03,03,03,03,03,03,03,03,03,03,03,11,
+	00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,
+	00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00
+};
+
+class TileSprites { // Class for functions and variables related to map tiles
 public:
+	void DrawSprite(const int sprite[8][8], int rotation_value, int X_position, int Y_position);
 
-	HDC hdc;
+	const HDC hdc = GetDC(GetConsoleWindow());
 
-	COLORREF yellow;
-	COLORREF blue;
-	COLORREF black;
+	const int spriteSize = 8;
 
-	HPEN outlinePen;
-	HPEN blueOutlinePen;
-	HBRUSH blackBrush;
-	HBRUSH yellowBrush;
-	
-	enum keyboardInput { UP, DOWN, LEFT, RIGHT, START, NONE };
-	keyboardInput playerInput = NONE, lastPlayerInput = NONE;
+	// Wall Tiles Sprite Sheet //
 
-	int playerX = 60, playerY = 60;
+	const int wall[8][8] = {
+		0,0,1,0,0,1,0,0,
+		0,0,1,0,0,1,0,0,
+		0,0,1,0,0,1,0,0,
+		0,0,1,0,0,1,0,0,
+		0,0,1,0,0,1,0,0,
+		0,0,1,0,0,1,0,0,
+		0,0,1,0,0,1,0,0,
+		0,0,1,0,0,1,0,0,
+	};
+	const int wall_corner[8][8] = {
+		0,0,1,0,0,1,0,0,
+		0,0,1,0,0,1,0,0,
+		0,0,1,0,0,0,1,1,
+		0,0,1,1,0,0,0,0,
+		0,0,0,1,1,0,0,0,
+		0,0,0,0,1,1,1,1,
+		0,0,0,0,0,0,0,0,
+		0,0,0,0,0,0,0,0,
+	};
+	const int wall_corner_square[8][8] = {
+		0,0,1,0,0,1,0,0,
+		0,0,1,0,0,1,0,0,
+		0,0,1,0,0,1,1,1,
+		0,0,1,0,0,0,0,0,
+		0,0,1,0,0,0,0,0,
+		0,0,1,1,1,1,1,1,
+		0,0,0,0,0,0,0,0,
+		0,0,0,0,0,0,0,0,
+	};
+	const int wall_cross_two[8][8] = {
+		0,0,1,0,0,0,0,0,
+		0,0,1,0,0,0,0,0,
+		0,0,1,0,0,0,0,0,
+		0,0,1,0,0,0,0,1,
+		0,0,1,0,0,0,1,0,
+		0,0,1,0,0,1,0,0,
+		0,0,1,0,0,1,0,0,
+		0,0,1,0,0,1,0,0,
+	};
+	const int wall_cross[8][8] = {
+		0,0,0,0,0,0,0,0,
+		0,0,0,0,0,0,0,0,
+		1,1,1,1,1,1,1,1,
+		0,0,0,0,0,0,0,0,
+		0,0,0,0,0,0,0,0,
+		1,1,1,0,0,0,0,0,
+		0,0,0,1,0,0,0,0,
+		0,0,0,0,1,0,0,0,
+	};
+	const int wall_cross_thick[8][8] = {
+		0,0,0,0,0,0,0,0,
+		0,0,0,0,0,0,0,0,
+		0,0,0,0,0,0,0,0,
+		1,1,1,0,0,0,0,0,
+		0,0,0,1,0,0,0,0,
+		0,0,0,0,1,0,0,0,
+		0,0,0,0,1,0,0,0,
+		0,0,0,0,1,0,0,0,
+	};
+	const int wall_thick[8][8] = {
+		0,0,0,0,1,0,0,0,
+		0,0,0,0,1,0,0,0,
+		0,0,0,0,1,0,0,0,
+		0,0,0,0,1,0,0,0,
+		0,0,0,0,1,0,0,0,
+		0,0,0,0,1,0,0,0,
+		0,0,0,0,1,0,0,0,
+		0,0,0,0,1,0,0,0,
+	};
+	const int wall_corner_thick[8][8] = {
+		0,0,0,0,1,0,0,0,
+		0,0,0,0,1,0,0,0,
+		0,0,0,0,0,1,0,0,
+		0,0,0,0,0,0,1,1,
+		0,0,0,0,0,0,0,0,
+		0,0,0,0,0,0,0,0,
+		0,0,0,0,0,0,0,0,
+		0,0,0,0,0,0,0,0,
+	};
+	const int gate[8][8] = {
+		0,0,0,0,0,0,0,0,
+		0,0,0,0,0,0,0,0,
+		0,0,0,0,0,0,0,0,
+		3,3,3,3,3,3,3,3,
+		3,3,3,3,3,3,3,3,
+		0,0,0,0,0,0,0,0,
+		0,0,0,0,0,0,0,0,
+		0,0,0,0,0,0,0,0,
+	};
+};
 
-	// Constructor
-	DrawAndRotate() {
-		hdc = GetDC(GetConsoleWindow());
+class Pacman {
+public:
+	Pacman();
+	~Pacman();
+	void ChangePhase();
+	void DrawPacman(const int sprite[8][8], int rotation_value, int X_position, int Y_position);
+	bool CollisionCheck(input dir);
+	void MovePacman(input dir);
+	int GetRotationValue(input dir);
 
-		yellow = RGB(255, 255, 0);
-		blue = RGB(0, 0, 255);
-		black = RGB(12, 12, 12);
+	const HDC hdc = GetDC(GetConsoleWindow());
+	COLORREF black = RGB(12, 12, 12);
+	COLORREF white = RGB(255, 255, 255);
+	COLORREF blue = RGB(0, 0, 255);
+	COLORREF dots = RGB(255, 188, 149);
 
-		outlinePen = CreatePen(PS_NULL, 0, black);
-		blueOutlinePen = CreatePen(PS_SOLID, 1, blue);
-		blackBrush = CreateSolidBrush(black);
-		yellowBrush = CreateSolidBrush(yellow);
-	}
+	HBRUSH blackBrush = CreateSolidBrush(black);
+	HBRUSH whiteBrush = CreateSolidBrush(white);
+	HBRUSH dotsBrush = CreateSolidBrush(dots);
+	HPEN outlinePen = CreatePen(PS_NULL, 0, black);
+	HPEN blueOutlinePen = CreatePen(PS_SOLID, 1, blue);
 
-	// Destructor (NO MORE WORRIES ABOUT MEMORY LEAKS... RIGHT?)
-	~DrawAndRotate() {
-		ReleaseDC(GetConsoleWindow(), hdc);
-		DeleteObject(outlinePen);
-		DeleteObject(blueOutlinePen);
-		DeleteObject(blackBrush);
-		DeleteObject(yellowBrush);
-	}
+	const int spriteSize = 8;
 
-	template<typename T>
-	void rotate(T sprite[16][16], int deg) {
-		for (int y = 0; y < 16; y++) {
-			for (int x = 0; x < 16; x++) {
-				switch (deg) {
-				case 0:
-					if (sprite[y][x] == 1)
-						SetPixelV(hdc, playerX + x, playerY + y, yellow);
-					break;
-				case 90:
-					if (sprite[y][x] == 1)
-						SetPixelV(hdc, playerX + y, playerY + x, yellow);
-					break;
-				case 180:
-					if (sprite[y][x] == 1) {
-						if (x < 8)
-							SetPixelV(hdc, playerX + x + ((8 - x) * 2), playerY + y, yellow);
-						if (x >= 8)
-							SetPixelV(hdc, playerX + x - ((x - 8) * 2), playerY + y, yellow);
-					}
-					break;
-				case 270:
-					if (sprite[y][x] == 1) {
-						if (x < 8)
-							SetPixelV(hdc, playerX + y + ((8 - y) * 2), playerY + x + ((8 - x) * 2), yellow);
-						if (x >= 8)
-							SetPixelV(hdc, playerX + y - ((y - 8) * 2), playerY + x - ((x - 8) * 2), yellow);
-					}
-					break;
-				}
-			}
-		}
-	}
+	int adjpx = 4; 
+	bool clearorigin = false;
+	int currentPhase = 1;
 
-	template<typename T>
-	void drawEntity(T sprite[16][16]) {
-		switch (lastPlayerInput) {
-		case RIGHT:
-		case NONE:
-			rotate(sprite, 0);
-			break;
-		case DOWN:
-			rotate(sprite, 90);
-			break;
-		case LEFT:
-			rotate(sprite, 180);
-			break;
-		case UP:
-			rotate(sprite, 270);
-			break;
-		}
-	}
+	int X_pos = 0; // Current X position
+	int Y_pos = 0; // Current Y position
 
-	void drawClearEntity(keyboardInput lastPlayerInput) {
-		int xOffset = 0, yOffset = 0;
-		if (lastPlayerInput == LEFT)
-			xOffset = 2;
-		else if (lastPlayerInput == RIGHT)
-			xOffset = -2;
-		else if (lastPlayerInput == UP)
-			yOffset = 2;
-		else if (lastPlayerInput == DOWN)
-			yOffset = -2;
+	int X_old = 0; // Last X position
+	int Y_old = 0; // Last Y position
 
-		Rectangle(hdc, playerX + xOffset, playerY + yOffset, playerX + xOffset + 17, playerY + yOffset + 17);
-	}
+	// Pacman phase sprites //
+
+	const int P1[8][8] = {
+		9,9,4,4,4,4,4,9,
+		9,4,4,4,4,4,9,9,
+		4,4,4,4,4,9,9,9,
+		4,4,4,9,9,9,9,9,
+		4,4,4,9,9,9,9,9,
+		4,4,4,4,4,9,9,9,
+		9,4,4,4,4,4,9,9,
+		9,9,4,4,4,4,4,9,
+	};
+	const int P2[8][8] = {
+		9,9,4,4,4,4,9,9,
+		9,4,4,4,4,4,4,9,
+		4,4,4,4,4,9,9,9,
+		4,4,4,9,9,9,9,9,
+		4,4,4,9,9,9,9,9,
+		4,4,4,4,4,9,9,9,
+		9,4,4,4,4,4,4,9,
+		9,9,4,4,4,4,9,9,
+	};
+	const int P3[8][8] = {
+		9,9,4,4,4,4,9,9,
+		9,4,4,4,4,4,4,9,
+		4,4,4,4,4,4,4,4,
+		4,4,4,4,4,4,4,4,
+		4,4,4,4,4,4,4,4,
+		4,4,4,4,4,4,4,4,
+		9,4,4,4,4,4,4,9,
+		9,9,4,4,4,4,9,9,
+	};
 };
 
 #endif
