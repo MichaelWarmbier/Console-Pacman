@@ -2,6 +2,7 @@
 #define DATASTRUCTURES_H
 
 #include <iostream>
+#include <iomanip>
 #include <Windows.h>
 #include <chrono>
 #include <conio.h>
@@ -9,7 +10,8 @@
 using namespace std;
 using namespace chrono;
 
-double FPS = 1.0 / 60.0; // Frames
+// FPS related
+double FPS = 1.0 / 60.0;
 double timer = 0, dt = 0;
 
 // Board dimensions
@@ -21,9 +23,18 @@ enum input { LEFT, RIGHT, UP, DOWN, NONE, START };
 input game_input = NONE;
 
 // Game variables
+enum state {BEFORE, DURING, AFTER, LIMBO};
+state GameState = DURING;
+enum mode {CHASE, SCATTER, FEAR};
+mode GhostMode = CHASE;
 
 int CollectedDots = 0;
 
+bool ShowFPS = false;
+bool ShowCollectedDots = false;
+bool ShowNodes = false;
+
+// Game Map
 int Map[mapHeight][mapWidth]{
 	00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,
 	00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,
@@ -65,12 +76,11 @@ int Map[mapHeight][mapWidth]{
 
 class TileSprites { // Class for functions and variables related to map tiles
 public:
-	// Takes an argument of the sprite, it's rotation and it's position and draws
 	void DrawSprite(const int sprite[8][8], int rotation_value, int X_position, int Y_position);
 
 	const HDC hdc = GetDC(GetConsoleWindow());
 
-	const int spriteSize = 8; // Variable relating to sprite size
+	const int spriteSize = 8;
 
 	// Wall Tiles Sprite Sheet //
 
@@ -164,39 +174,17 @@ public:
 		0,0,0,0,0,0,0,0,
 		0,0,0,0,0,0,0,0,
 	};
-	const int dot[8][8] = {
-		0,0,0,0,0,0,0,0,
-		0,0,0,0,0,0,0,0,
-		0,0,0,0,0,0,0,0,
-		0,0,0,3,3,0,0,0,
-		0,0,0,3,3,0,0,0,
-		0,0,0,0,0,0,0,0,
-		0,0,0,0,0,0,0,0,
-		0,0,0,0,0,0,0,0,
-	};
-	// Error handling tile: invalid tile number
-	const int error[8][8] = {
-		0,5,0,5,0,5,0,5,
-		5,0,5,0,5,0,5,0,
-		0,5,0,5,0,5,0,5,
-		5,0,5,0,5,0,5,0,
-		0,5,0,5,0,5,0,5,
-		5,0,5,0,5,0,5,0,
-		0,5,0,5,0,5,0,5,
-		5,0,5,0,5,0,5,0,
-	};
 };
 
 class Pacman {
 public:
 	Pacman();
 	~Pacman();
-	void ChangePhase(); // Increments Pacmans phase and defines it's bounds
-	// Takes an argument of the sprite, it's rotation value, and it's position and draws
+	void ChangePhase();
 	void DrawPacman(const int sprite[8][8], int rotation_value, int X_position, int Y_position);
-	bool CollisionCheck(input dir); // Check for collision in a given direction
-	void MovePacman(input dir); // Main movement function
-	int GetRotationValue(input dir); // Gets direction pacman should face given direction
+	bool CollisionCheck(input dir);
+	void MovePacman(input dir);
+	int GetRotationValue(input dir);
 
 	const HDC hdc = GetDC(GetConsoleWindow());
 	COLORREF black = RGB(12, 12, 12);
@@ -210,11 +198,11 @@ public:
 	HPEN outlinePen = CreatePen(PS_NULL, 0, black);
 	HPEN blueOutlinePen = CreatePen(PS_SOLID, 1, blue);
 
-	const int spriteSize = 8; // Constant sprite size for Pacman sprites
+	const int spriteSize = 8;
 
-	int adjpx = 4; // Adjustment pixels prior to first input
-	bool clearorigin = false; // Bool for whether or not origin (starting coordinates) should be cleared
-	int currentPhase = 1; // Current phase counter
+	int adjpx = 4; 
+	bool clearorigin = false;
+	int currentPhase = 1;
 
 	int X_pos = 0; // Current X position
 	int Y_pos = 0; // Current Y position
