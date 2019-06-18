@@ -71,7 +71,9 @@ Pacman::Pacman() {
 Pacman::~Pacman() {
 	DeleteObject(blackBrush);
 	DeleteObject(whiteBrush);
+	DeleteObject(dotsBrush);
 	DeleteObject(outlinePen);
+	DeleteObject(blueOutlinePen);
 	ReleaseDC(GetConsoleWindow(), hdc);
 	DeleteDC(hdc);
 }
@@ -164,7 +166,7 @@ int Pacman::GetRotationValue(input dir) {
 	return 1;
 }
 
-bool CheckForDot(input dir) { 
+bool CheckForDot(input dir) {
 	switch (dir) {
 	case LEFT:
 		if (Map[Pac.Y_pos][Pac.X_pos - 1] == 01)
@@ -228,7 +230,7 @@ void DrawMap(int s_x, int s_y) {
 				Pac.Y_pos = y;
 			}
 			else if (Map[y][x] == 01) {
-				SelectObject(Pac.hdc, Pac.whiteBrush);
+				SelectObject(Pac.hdc, Pac.dotsBrush);
 				Rectangle(Pac.hdc, s_x + (x * 8) + 3, s_y + (y * 8) + 3, s_x + (x * 8) + 6, s_y + (y * 8) + 6);
 				//Game.DrawSprite(Game.dot, 1, s_x + (x * 8), s_y + (y * 8));
 			}
@@ -361,6 +363,10 @@ void DrawMap(int s_x, int s_y) {
 				RoundRect(Pac.hdc, s_x + (x * 8) + 4, s_y + (y * 8) + 4, s_x + (x * 8) + 36, s_y + (y * 8) + 12, 3, 3);
 				SelectObject(Pac.hdc, Pac.outlinePen);
 			}
+			else if (Map[y][x] == 90) {
+				SelectObject(Pac.hdc, Pac.dotsBrush);
+				Ellipse(Pac.hdc, s_x + (x * 8), s_y + (y * 8), s_x + (x * 8) + 9, s_y + (y * 8) + 9);
+			}
 			else
 				Game.DrawSprite(Game.error, 1, s_x + (x * 8), s_y + (y * 8));
 		}
@@ -404,19 +410,19 @@ void Pacman::MovePacman(input dir) {
 bool Pacman::CollisionCheck(input dir) {
 	switch (dir) {
 	case UP:
-		if (Map[Y_pos - 1][X_pos] != 00 && Map[Y_pos - 1][X_pos] != 98 && Map[Y_pos - 1][X_pos] != 01)
+		if (Map[Y_pos - 1][X_pos] != 00 && Map[Y_pos - 1][X_pos] != 98 && Map[Y_pos - 1][X_pos] != 01 && Map[Y_pos - 1][X_pos] != 90)
 			return true;
 		break;
 	case DOWN:
-		if (Map[Y_pos + 1][X_pos] != 00 && Map[Y_pos + 1][X_pos] != 98 && Map[Y_pos + 1][X_pos] != 01)
+		if (Map[Y_pos + 1][X_pos] != 00 && Map[Y_pos + 1][X_pos] != 98 && Map[Y_pos + 1][X_pos] != 01 && Map[Y_pos + 1][X_pos] != 90)
 			return true;
 		break;
 	case LEFT:
-		if (Map[Y_pos][X_pos - 1] != 00 && Map[Y_pos][X_pos - 1] != 98 && Map[Y_pos][X_pos - 1] != 01)
+		if (Map[Y_pos][X_pos - 1] != 00 && Map[Y_pos][X_pos - 1] != 98 && Map[Y_pos][X_pos - 1] != 01 && Map[Y_pos][X_pos - 1] != 90)
 			return true;
 		break;
 	case RIGHT:
-		if (Map[Y_pos][X_pos + 1] != 00 && Map[Y_pos][X_pos + 1] != 98 && Map[Y_pos][X_pos + 1] != 01)
+		if (Map[Y_pos][X_pos + 1] != 00 && Map[Y_pos][X_pos + 1] != 98 && Map[Y_pos][X_pos + 1] != 01 && Map[Y_pos][X_pos + 1] != 90)
 			return true;
 		break;
 	default:
