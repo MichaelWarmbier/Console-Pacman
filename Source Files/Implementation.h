@@ -16,13 +16,13 @@
 #define TIMER_STOP \
     QueryPerformanceCounter(&t2); \
     elapsedTime=(float)(t2.QuadPart-t1.QuadPart)/frequency.QuadPart; \
-	SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), {10, 1}); \
-    wcout << 1.0 / elapsedTime << L" fps" << " " << CollectedDots; \
+	SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), {3, 1}); \
+    wcout << 1.0 / elapsedTime << setprecision(1) << fixed << L" fps " << "Collected Dots: " << CollectedDots; \
 	SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), {0, 1});
 
-void GameDraw(); // Draws game
-void GameInput(); // Sorts input
-void GameLogic(); // Applies logic
+void GameDraw();
+void GameInput();
+void GameLogic();
 
 bool KeyIsDown(char key, bool pressed = true, bool held = true);
 double getTime();
@@ -31,39 +31,47 @@ double wait(double);
 void ShowConsoleCursor(bool showFlag);
 bool CheckForDot(input dir);
 
-void DrawMap(int X_pos, int Y_pos); // Outputs map using Map array and X and Y offset argument
-COLORREF GetColor(int color_data); // Returns RGB value based off integer
+void DrawMap(int X_pos, int Y_pos);
+COLORREF GetColor(int color_data);
 
 TileSprites Game;
 Pacman Pac;
 
 /////////////////////////////////////////////////// -- Frame loop
-void GameDraw() { // -- Draw
+void GameDraw() {
 	DrawMap(20, 20);
 }
 
-void GameInput() { // -- Get Input
-	// Switches game input based off last button pressed, does not reset input each frame
-	if (KeyIsDown('W', true, true) && !KeyIsDown('S', true, true) && !Pac.CollisionCheck(UP))
-		game_input = UP;
-	else if (KeyIsDown('S', true, true) && !KeyIsDown('W', true, true) && !Pac.CollisionCheck(DOWN))
-		game_input = DOWN;
-	else if (KeyIsDown('A', true, true) && !KeyIsDown('D', true, true) && !Pac.CollisionCheck(LEFT))
-		game_input = LEFT;
-	else if (KeyIsDown('D', true, true) && !KeyIsDown('A', true, true) && !Pac.CollisionCheck(RIGHT))
-		game_input = RIGHT;
-	if (game_input != NONE && Pac.adjpx != 0) {
-		// Adjusts pacman if no input has been made, centering him at origin
-		Pac.adjpx = 0;
-		Pac.clearorigin = true;
+void GameInput() {
+	if (KeyIsDown(13, true, false)) {
+		if (GameState == DURING)
+			GameState = LIMBO;
+		else if (GameState == LIMBO)
+			GameState = DURING;
+	}
+	if (GameState != LIMBO) {
+		if (KeyIsDown('W', true, true) && !KeyIsDown('S', true, true) && !Pac.CollisionCheck(UP))
+			game_input = UP;
+		else if (KeyIsDown('S', true, true) && !KeyIsDown('W', true, true) && !Pac.CollisionCheck(DOWN))
+			game_input = DOWN;
+		else if (KeyIsDown('A', true, true) && !KeyIsDown('D', true, true) && !Pac.CollisionCheck(LEFT))
+			game_input = LEFT;
+		else if (KeyIsDown('D', true, true) && !KeyIsDown('A', true, true) && !Pac.CollisionCheck(RIGHT))
+			game_input = RIGHT;
+		if (game_input != NONE && Pac.adjpx != 0) {
+			// Adjusts pacman if no input has been made, centering him at origin
+			Pac.adjpx = 0;
+			Pac.clearorigin = true;
+		}
 	}
 }
 
-void GameLogic() { // -- Apply Logic
+void GameLogic() {
 	Pac.ChangePhase();
 	Pac.MovePacman(game_input);
 }
 
+//////////////////////////////////////////////////////////////////////
 Pacman::Pacman() {
 	SelectObject(hdc, outlinePen);
 }
@@ -202,12 +210,10 @@ void DrawMap(int s_x, int s_y) {
 				if (!Pac.clearorigin) {
 					SelectObject(Pac.hdc, Pac.blackBrush);
 					Rectangle(Pac.hdc, s_x + (x * 8) + Pac.adjpx, s_y + (y * 8) + 1, s_x + (x * 8) + 10, s_y + (y * 8) + 11);
-					//Pac.DrawPacman(Pac.clear, Pac.GetRotationValue(game_input), s_x + (x * 8) + Pac.adjpx, s_y + (y * 8) + 1);
 				}
 				else {
 					SelectObject(Pac.hdc, Pac.blackBrush);
 					Rectangle(Pac.hdc, s_x + (x * 8) + Pac.adjpx, s_y + (y * 8), s_x + (x * 8) + 12, s_y + (y * 8) + 10);
-					//Pac.DrawPacman(Pac.clear, Pac.GetRotationValue(game_input), s_x + (x * 8) + 4, s_y + (y * 8) + 1);
 					Pac.clearorigin = false;
 				}
 			}
@@ -232,7 +238,6 @@ void DrawMap(int s_x, int s_y) {
 			else if (Map[y][x] == 01) {
 				SelectObject(Pac.hdc, Pac.dotsBrush);
 				Rectangle(Pac.hdc, s_x + (x * 8) + 3, s_y + (y * 8) + 3, s_x + (x * 8) + 6, s_y + (y * 8) + 6);
-				//Game.DrawSprite(Game.dot, 1, s_x + (x * 8), s_y + (y * 8));
 			}
 			else if (Map[y][x] == 02) {
 				SelectObject(Pac.hdc, Pac.blueOutlinePen);
@@ -241,7 +246,6 @@ void DrawMap(int s_x, int s_y) {
 				MoveToEx(Pac.hdc, s_x + (x * 8) + 2, s_y + (y * 8) + 8, NULL);
 				LineTo(Pac.hdc, s_x + (x * 8) + 2, s_y + (y * 8) - 1);
 				SelectObject(Pac.hdc, Pac.outlinePen);
-				//Game.DrawSprite(Game.wall, 1, s_x + (x * 8), s_y + (y * 8));
 			}
 			else if (Map[y][x] == 03) {
 				SelectObject(Pac.hdc, Pac.blueOutlinePen);
@@ -250,7 +254,6 @@ void DrawMap(int s_x, int s_y) {
 				MoveToEx(Pac.hdc, s_x + (x * 8), s_y + (y * 8) + 5, NULL);
 				LineTo(Pac.hdc, s_x + (x * 8) + 8, s_y + (y * 8) + 5);
 				SelectObject(Pac.hdc, Pac.outlinePen);
-				//Game.DrawSprite(Game.wall, 2, s_x + (x * 8), s_y + (y * 8));
 			}
 			else if (Map[y][x] == 04)
 				Game.DrawSprite(Game.wall_corner, 2, s_x + (x * 8), s_y + (y * 8));
@@ -297,33 +300,28 @@ void DrawMap(int s_x, int s_y) {
 				MoveToEx(Pac.hdc, s_x + (x * 8) + 4, s_y + (y * 8) + 8, NULL);
 				LineTo(Pac.hdc, s_x + (x * 8) + 4, s_y + (y * 8) - 1);
 				SelectObject(Pac.hdc, Pac.outlinePen);
-				//Game.DrawSprite(Game.wall_thick, 1, s_x + (x * 8), s_y + (y * 8));
 			}
 			else if (Map[y][x] == 25) {
 				SelectObject(Pac.hdc, Pac.blueOutlinePen);
 				MoveToEx(Pac.hdc, s_x + (x * 8) + 3, s_y + (y * 8) + 8, NULL);
 				LineTo(Pac.hdc, s_x + (x * 8) + 3, s_y + (y * 8) - 1);
 				SelectObject(Pac.hdc, Pac.outlinePen);
-				//Game.DrawSprite(Game.wall_thick, 4, s_x + (x * 8), s_y + (y * 8));
 			}
 			else if (Map[y][x] == 26) {
 				SelectObject(Pac.hdc, Pac.blueOutlinePen);
 				MoveToEx(Pac.hdc, s_x + (x * 8), s_y + (y * 8) + 4, NULL);
 				LineTo(Pac.hdc, s_x + (x * 8) + 8, s_y + (y * 8) + 4);
 				SelectObject(Pac.hdc, Pac.outlinePen);
-				//Game.DrawSprite(Game.wall_thick, 2, s_x + (x * 8), s_y + (y * 8));
 			}
 			else if (Map[y][x] == 27) {
 				SelectObject(Pac.hdc, Pac.whiteBrush);
 				Rectangle(Pac.hdc, s_x + (x * 8), s_y + (y * 8) + 3, s_x + (x * 8) + 10, s_y + (y * 8) + 6);
-				//Game.DrawSprite(Game.gate, 1, s_x + (x * 8), s_y + (y * 8));
 			}
 			else if (Map[y][x] == 28) {
 				SelectObject(Pac.hdc, Pac.blueOutlinePen);
 				MoveToEx(Pac.hdc, s_x + (x * 8), s_y + (y * 8) + 3, NULL);
 				LineTo(Pac.hdc, s_x + (x * 8) + 8, s_y + (y * 8) + 3);
 				SelectObject(Pac.hdc, Pac.outlinePen);
-				//Game.DrawSprite(Game.wall_thick, 2, s_x + (x * 8), s_y + (y * 8) - 1);
 			}
 			else if (Map[y][x] == 29)
 				Game.DrawSprite(Game.wall_corner_thick, 1, s_x + (x * 8), s_y + (y * 8));
@@ -367,8 +365,6 @@ void DrawMap(int s_x, int s_y) {
 				SelectObject(Pac.hdc, Pac.dotsBrush);
 				Ellipse(Pac.hdc, s_x + (x * 8), s_y + (y * 8), s_x + (x * 8) + 9, s_y + (y * 8) + 9);
 			}
-			else
-				Game.DrawSprite(Game.error, 1, s_x + (x * 8), s_y + (y * 8));
 		}
 	}
 }
@@ -472,7 +468,7 @@ void ShowConsoleCursor(bool showFlag)
 	CONSOLE_CURSOR_INFO     cursorInfo;
 
 	GetConsoleCursorInfo(out, &cursorInfo);
-	cursorInfo.bVisible = showFlag; // set the cursor visibility
+	cursorInfo.bVisible = showFlag;
 	SetConsoleCursorInfo(out, &cursorInfo);
 }
 
