@@ -17,7 +17,7 @@
     QueryPerformanceCounter(&t2); \
     elapsedTime=(float)(t2.QuadPart-t1.QuadPart)/frequency.QuadPart; \
 	SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), {10, 1}); \
-    wcout << 1.0 / elapsedTime << L" fps"; \
+    wcout << 1.0 / elapsedTime << L" fps" << " " << CollectedDots; \
 	SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), {0, 1});
 
 void GameDraw(); // Draws game
@@ -29,6 +29,7 @@ double getTime();
 double getTimeSince(double);
 double wait(double);
 void ShowConsoleCursor(bool showFlag);
+bool CheckForDot(input dir);
 
 void DrawMap(int X_pos, int Y_pos); // Outputs map using Map array and X and Y offset argument
 COLORREF GetColor(int color_data); // Returns RGB value based off integer
@@ -161,6 +162,33 @@ int Pacman::GetRotationValue(input dir) {
 		break;
 	}
 	return 1;
+}
+
+bool CheckForDot(input dir) { 
+	switch (dir) {
+	case LEFT:
+		if (Map[Pac.Y_pos][Pac.X_pos - 1] == 01)
+			return true;
+		else
+			return false;
+	case RIGHT:
+		if (Map[Pac.Y_pos][Pac.X_pos + 1] == 01)
+			return true;
+		else
+			return false;
+	case DOWN:
+		if (Map[Pac.Y_pos + 1][Pac.X_pos] == 01)
+			return true;
+		else
+			return false;
+	case UP:
+		if (Map[Pac.Y_pos - 1][Pac.X_pos] == 01)
+			return true;
+		else
+			return false;
+	default:
+		return false;
+	}
 }
 
 void DrawMap(int s_x, int s_y) {
@@ -344,6 +372,8 @@ void Pacman::MovePacman(input dir) {
 		Map[Y_old][X_old] = 00;
 		X_old = X_pos;
 		Y_old = Y_pos;
+		if (CheckForDot(dir))
+			CollectedDots++;
 		switch (dir) {
 		case UP:
 			Y_pos--;
