@@ -17,27 +17,113 @@
     QueryPerformanceCounter(&t2); \
     elapsedTime=(float)(t2.QuadPart-t1.QuadPart)/frequency.QuadPart; \
 	SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), {3, 1}); \
-    wcout << 1.0 / elapsedTime << setprecision(1) << fixed << L" fps " << "Collected Dots: " << CollectedDots; \
+    wcout << 1.0 / elapsedTime << setprecision(1) << fixed << L" fps"; \
+	cout << " Collected Dots: " << CollectedDots; \
 	SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), {0, 1});
 
+void MenuSetup();
+void MenuDraw();
+void MenuInput();
+void MenuLogic();
+
+void GameSetup();
 void GameDraw();
 void GameInput();
 void GameLogic();
 
+void DrawReady(bool);
 bool KeyIsDown(char key, bool pressed = true, bool held = true);
-double getTime();
-double getTimeSince(double);
+void DrawLogo();
+void ClearArrows();
+double GetTime();
+double GetTimeSince(double);
 double wait(double);
 void ShowConsoleCursor(bool showFlag);
 bool CheckForDot(input dir);
 
+void DrawChar(const int sprite[CharacterSize][CharacterSize], int x, int y, COLORREF color);
 void DrawMap(int X_pos, int Y_pos);
 COLORREF GetColor(int color_data);
 
 TileSprites Game;
 Pacman Pac;
 
-/////////////////////////////////////////////////// -- Frame loop
+///////////////////////////////////////////////////
+void MenuSetup() {
+	system("CLS");
+	system("MODE 44, 20");
+	ShowConsoleCursor(false);
+	EXIT_MENU = false;
+}
+void MenuDraw() {
+	DrawChar(P, 10, 14, RGB(255, 255, 255));
+	DrawChar(L, 11, 14, RGB(255, 255, 255));
+	DrawChar(A, 12, 14, RGB(255, 255, 255));
+	DrawChar(Y, 13, 14, RGB(255, 255, 255));
+	DrawChar(EXCLAMATION, 14, 14, RGB(255, 255, 255));
+	if (OptionSelected == 1) {
+		DrawChar(LEFT_ARROW, 16, 14, RGB(255, 255, 255));
+		DrawChar(DASH, 17, 14, RGB(255, 255, 255));
+	}
+	DrawChar(O, 10, 16, RGB(255, 255, 255));
+	DrawChar(P, 11, 16, RGB(255, 255, 255));
+	DrawChar(T, 12, 16, RGB(255, 255, 255));
+	DrawChar(I, 13, 16, RGB(255, 255, 255));
+	DrawChar(O, 14, 16, RGB(255, 255, 255));
+	DrawChar(N, 15, 16, RGB(255, 255, 255));
+	DrawChar(S, 16, 16, RGB(255, 255, 255));
+	if (OptionSelected == 2) {
+		DrawChar(LEFT_ARROW, 18, 16, RGB(255, 255, 255));
+		DrawChar(DASH, 19, 16, RGB(255, 255, 255));
+	}
+}
+void MenuInput() {
+	MainMenuInput = NONE;
+	if (KeyIsDown('W', true, false))
+		MainMenuInput = UP;
+	if (KeyIsDown('S', true, false))
+		MainMenuInput = DOWN;
+	if (KeyIsDown(13, true, false))
+		MainMenuInput = START;
+}
+void MenuLogic() {
+	if (MainMenuInput == NONE)
+		DrawLogo();
+	if (MainMenuInput != NONE && MainMenuInput != START) {
+		ClearArrows();
+		switch (MainMenuInput) {
+		case UP:
+			OptionSelected--;
+			break;
+		case DOWN:
+			OptionSelected++;
+			break;
+		}
+		if (OptionSelected < 1)
+			OptionSelected = 1;
+		else if (OptionSelected > 2)
+			OptionSelected = 2;
+	}
+	if (MainMenuInput == START) {
+		switch (OptionSelected) {
+		case 1:
+			EXIT_MENU = true;
+			EXIT_GAME = false;
+			break;
+		case 2:
+			break;
+		}
+	}
+
+}
+void GameSetup() {
+	system("CLS");
+	system("MODE 34, 20");
+	GameState = BEFORE;
+	CollectedDots = 0;
+	TimeStamp = GetTime();
+}
+
 void GameDraw() {
 	DrawMap(20, 20);
 }
@@ -49,7 +135,7 @@ void GameInput() {
 		else if (GameState == LIMBO)
 			GameState = DURING;
 	}
-	if (GameState != LIMBO) {
+	if (GameState != LIMBO && GameState != BEFORE) {
 		if (KeyIsDown('W', true, true) && !KeyIsDown('S', true, true) && !Pac.CollisionCheck(UP))
 			game_input = UP;
 		else if (KeyIsDown('S', true, true) && !KeyIsDown('W', true, true) && !Pac.CollisionCheck(DOWN))
@@ -72,6 +158,78 @@ void GameLogic() {
 }
 
 //////////////////////////////////////////////////////////////////////
+void DrawLogo() {
+	for (int y = 0; y < 30; y++) {
+		for (int x = 0; x < 89; x++) {
+			if (Logo[y][x] == 0)
+				continue;
+			else if (Logo[y][x] == 1) {
+				for (int i = 0; i < 4; i++) {
+					for (int j = 0; j < 4; j++) {
+						SetPixel(Pac.hdc, x + 40 + i + (x * 2), y + 40 + j + (y * 2), RGB(255, 255, 255));
+					}
+				}
+			}
+			else if (Logo[y][x] == 2) {
+				for (int i = 0; i < 4; i++) {
+					for (int j = 0; j < 4; j++) {
+						SetPixel(Pac.hdc, x + 40 + i + (x * 2), y + 40 + j + (y * 2), RGB(255, 255, 0));
+					}
+				}
+			}
+			else if (Logo[y][x] == 3) {
+				for (int i = 0; i < 4; i++) {
+					for (int j = 0; j < 4; j++) {
+						SetPixel(Pac.hdc, x + 40 + i + (x * 2), y + 40 + j + (y * 2), RGB(0, 38, 255));
+					}
+				}
+			}
+			else if (Logo[y][x] == 4) {
+				for (int i = 0; i < 4; i++) {
+					for (int j = 0; j < 4; j++) {
+						SetPixel(Pac.hdc, x + 40 + i + (x * 2), y + 40 + j + (y * 2), RGB(255, 188, 149));
+					}
+				}
+			}
+		}
+	}
+}
+void DrawReady(bool condition) {
+	switch (condition) {
+	case true:
+		Map[20][11] = 75;
+		Map[20][12] = 76;
+		Map[20][13] = 77;
+		Map[20][14] = 78;
+		Map[20][15] = 79;
+		Map[20][16] = 80;
+		break;
+	case false:
+		Map[20][11] = 0;
+		Map[20][12] = 0;
+		Map[20][13] = 0;
+		Map[20][14] = 0;
+		Map[20][15] = 0;
+		Map[20][16] = 0;
+		break;
+	}
+}
+void ClearArrows() {
+	DrawChar(SPACE, 18, 16, RGB(12, 12, 12));
+	DrawChar(SPACE, 19, 16, RGB(12, 12, 12));
+	DrawChar(SPACE, 16, 14, RGB(12, 12, 12));
+	DrawChar(SPACE, 17, 14, RGB(12, 12, 12));
+}
+void DrawChar(const int sprite[CharacterSize][CharacterSize], int x_pos, int y_pos, COLORREF color) {
+	for (int y = 0; y < CharacterSize; y++) {
+		for (int x = 0; x < CharacterSize; x++) {
+			if (sprite[y][x] == 0)
+				continue;
+			else if (sprite[y][x] == 1)
+				SetPixel(Pac.hdc, (x_pos * CharacterSize) + x, (y_pos * CharacterSize) + y, color);
+		}
+	}
+}
 Pacman::Pacman() {
 	SelectObject(hdc, outlinePen);
 }
@@ -361,6 +519,18 @@ void DrawMap(int s_x, int s_y) {
 				RoundRect(Pac.hdc, s_x + (x * 8) + 4, s_y + (y * 8) + 4, s_x + (x * 8) + 36, s_y + (y * 8) + 12, 3, 3);
 				SelectObject(Pac.hdc, Pac.outlinePen);
 			}
+			else if (Map[y][x] == 75)
+				Game.DrawSprite(Game.Special_R, 1, s_x + (x * 8), s_y + (y * 8));
+			else if (Map[y][x] == 76)
+				Game.DrawSprite(Game.Special_E, 1, s_x + (x * 8), s_y + (y * 8));
+			else if (Map[y][x] == 77)
+				Game.DrawSprite(Game.Special_A, 1, s_x + (x * 8), s_y + (y * 8));
+			else if (Map[y][x] == 78)
+				Game.DrawSprite(Game.Special_D, 1, s_x + (x * 8), s_y + (y * 8));
+			else if (Map[y][x] == 79)
+				Game.DrawSprite(Game.Special_Y, 1, s_x + (x * 8), s_y + (y * 8));
+			else if (Map[y][x] == 80)
+				Game.DrawSprite(Game.Special_EXCLAMATIONPOINT, 1, s_x + (x * 8), s_y + (y * 8));
 			else if (Map[y][x] == 90) {
 				SelectObject(Pac.hdc, Pac.dotsBrush);
 				Ellipse(Pac.hdc, s_x + (x * 8), s_y + (y * 8), s_x + (x * 8) + 9, s_y + (y * 8) + 9);
@@ -445,20 +615,20 @@ bool KeyIsDown(char key, bool pressed, bool held) {
 	return (pressed && (keyState & 1)) || (held && (keyState & 0xA000));
 }
 
-double getTime() {
+double GetTime() {
 	return time_point_cast<nanoseconds>(high_resolution_clock::now()).time_since_epoch().count() / 1e9;
 }
 
-double getTimeSince(double startTime) {
+double GetTimeSince(double startTime) {
 	return time_point_cast<nanoseconds>(high_resolution_clock::now()).time_since_epoch().count() / 1e9 - startTime;
 }
 
 double wait(double waitTime) {
-	double startTime = getTime();
+	double startTime = GetTime();
 
-	while (waitTime > getTimeSince(startTime)) {}
+	while (waitTime > GetTimeSince(startTime)) {}
 
-	return getTimeSince(startTime + waitTime);
+	return GetTimeSince(startTime + waitTime);
 }
 
 void ShowConsoleCursor(bool showFlag)
