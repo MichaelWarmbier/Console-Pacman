@@ -56,25 +56,33 @@ void MenuSetup() {
 	EXIT_MENU = false;
 }
 void MenuDraw() {
-	DrawChar(P, 10, 14, RGB(255, 255, 255));
-	DrawChar(L, 11, 14, RGB(255, 255, 255));
-	DrawChar(A, 12, 14, RGB(255, 255, 255));
-	DrawChar(Y, 13, 14, RGB(255, 255, 255));
-	DrawChar(EXCLAMATION, 14, 14, RGB(255, 255, 255));
+	DrawChar(P, 10, 15, RGB(255, 255, 255));
+	DrawChar(L, 11, 15, RGB(255, 255, 255));
+	DrawChar(A, 12, 15, RGB(255, 255, 255));
+	DrawChar(Y, 13, 15, RGB(255, 255, 255));
+	DrawChar(EXCLAMATION, 14, 15, RGB(255, 255, 255));
 	if (OptionSelected == 1) {
-		DrawChar(LEFT_ARROW, 16, 14, RGB(255, 255, 255));
-		DrawChar(DASH, 17, 14, RGB(255, 255, 255));
+		DrawChar(LEFT_ARROW, 16, 15, RGB(255, 255, 255));
+		DrawChar(DASH, 17, 15, RGB(255, 255, 255));
 	}
-	DrawChar(O, 10, 16, RGB(255, 255, 255));
-	DrawChar(P, 11, 16, RGB(255, 255, 255));
-	DrawChar(T, 12, 16, RGB(255, 255, 255));
-	DrawChar(I, 13, 16, RGB(255, 255, 255));
-	DrawChar(O, 14, 16, RGB(255, 255, 255));
-	DrawChar(N, 15, 16, RGB(255, 255, 255));
-	DrawChar(S, 16, 16, RGB(255, 255, 255));
+	DrawChar(O, 10, 17, RGB(255, 255, 255));
+	DrawChar(P, 11, 17, RGB(255, 255, 255));
+	DrawChar(T, 12, 17, RGB(255, 255, 255));
+	DrawChar(I, 13, 17, RGB(255, 255, 255));
+	DrawChar(O, 14, 17, RGB(255, 255, 255));
+	DrawChar(N, 15, 17, RGB(255, 255, 255));
+	DrawChar(S, 16, 17, RGB(255, 255, 255));
 	if (OptionSelected == 2) {
-		DrawChar(LEFT_ARROW, 18, 16, RGB(255, 255, 255));
-		DrawChar(DASH, 19, 16, RGB(255, 255, 255));
+		DrawChar(LEFT_ARROW, 18, 17, RGB(255, 255, 255));
+		DrawChar(DASH, 19, 17, RGB(255, 255, 255));
+	}
+	DrawChar(E, 10, 19, RGB(255, 255, 255));
+	DrawChar(X, 11, 19, RGB(255, 255, 255));
+	DrawChar(I, 12, 19, RGB(255, 255, 255));
+	DrawChar(T, 13, 19, RGB(255, 255, 255));
+	if (OptionSelected == 3) {
+		DrawChar(LEFT_ARROW, 15, 19, RGB(255, 255, 255));
+		DrawChar(DASH, 16, 19, RGB(255, 255, 255));
 	}
 }
 void MenuInput() {
@@ -101,8 +109,8 @@ void MenuLogic() {
 		}
 		if (OptionSelected < 1)
 			OptionSelected = 1;
-		else if (OptionSelected > 2)
-			OptionSelected = 2;
+		else if (OptionSelected > 3)
+			OptionSelected = 3;
 	}
 	if (MainMenuInput == START) {
 		switch (OptionSelected) {
@@ -111,6 +119,11 @@ void MenuLogic() {
 			EXIT_GAME = false;
 			break;
 		case 2:
+			break;
+		case 3:
+			EXIT_MENU = true;
+			EXIT_GAME = true;
+			EXIT_PROGRAM = true;
 			break;
 		}
 	}
@@ -211,14 +224,18 @@ void DrawReady(bool condition) {
 		Map[20][14] = 0;
 		Map[20][15] = 0;
 		Map[20][16] = 0;
+		Map[20][15] = 0;
+		Map[20][16] = 0;
 		break;
 	}
 }
 void ClearArrows() {
-	DrawChar(SPACE, 18, 16, RGB(12, 12, 12));
-	DrawChar(SPACE, 19, 16, RGB(12, 12, 12));
-	DrawChar(SPACE, 16, 14, RGB(12, 12, 12));
-	DrawChar(SPACE, 17, 14, RGB(12, 12, 12));
+	DrawChar(SPACE, 18, 17, RGB(12, 12, 12));
+	DrawChar(SPACE, 19, 17, RGB(12, 12, 12));
+	DrawChar(SPACE, 16, 15, RGB(12, 12, 12));
+	DrawChar(SPACE, 17, 15, RGB(12, 12, 12));
+	DrawChar(SPACE, 15, 19, RGB(12, 12, 12));
+	DrawChar(SPACE, 16, 19, RGB(12, 12, 12));
 }
 void DrawChar(const int sprite[CharacterSize][CharacterSize], int x_pos, int y_pos, COLORREF color) {
 	for (int y = 0; y < CharacterSize; y++) {
