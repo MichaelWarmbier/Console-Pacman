@@ -1,6 +1,11 @@
 # Console-Pacman
 
-A version of Pacman entirely redesigned in C++. Programmed equally by Michael Warmbier & Sam Montanaro.
+### A version of Pacman entirely redesigned in C++. 
+
+Programmed equally by Michael Warmbier & Sam Montanaro.
+
+Pacman is the original maze-chase arcade game developed by Bandai Namco on May 22, 1980.
+
 
 ## Current Design
 
@@ -19,5 +24,3 @@ A version of Pacman entirely redesigned in C++. Programmed equally by Michael Wa
 - [ ] Add level system
 - [ ] Add fruit functionality
 - [ ] Add live functionality
-
-Pacman is the original maze-chase arcade game developed by Bandai Namco on May 22, 1980.
