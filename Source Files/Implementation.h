@@ -61,6 +61,7 @@ void ChangePhase();
 
 // Get Functions
 COLORREF GetColor(int color_data);
+int GetRotationValue(input dir);
 
 ////////////////////////////////////////////
 // Main Menu Routines & Setup Definitions //
