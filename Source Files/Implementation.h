@@ -60,7 +60,6 @@ void MovePacman(input dir);
 void ChangePhase();
 
 // Get Functions
-int GetRotationValue(input dir);
 COLORREF GetColor(int color_data);
 
 ////////////////////////////////////////////
@@ -448,9 +447,9 @@ void DrawMap(int s_x, int s_y) {
 				DrawSprite(wall_corner, 3, s_x + (x * 8), s_y + (y * 8));
 			else if (Map[y][x] == 07)
 				DrawSprite(wall_corner_square, 3, s_x + (x * 8), s_y + (y * 8));
-			else if (Map[y][x] == 33)
+			else if (Map[y][x] ==  8)
 				DrawSprite(wall_corner_square, 2, s_x + (x * 8), s_y + (y * 8));
-			else if (Map[y][x] == 34)
+			else if (Map[y][x] ==  9)
 				DrawSprite(wall_corner_square, 1, s_x + (x * 8), s_y + (y * 8));
 			else if (Map[y][x] == 10)
 				DrawSprite(wall_corner_square, 4, s_x + (x * 8), s_y + (y * 8));
