@@ -29,13 +29,13 @@ void GameLogic();
 void DrawSprite(const int[8][8], int, int, int);
 	-- Takes the arguments of an 8x8 sprite, it's rotation value and it's x and y positions and uses
 	   arguments in conjuntion to draw the sprite
-void DrawPacman(const int[8][8], int, int, int );
+void DrawPacman(const int[8][8], int, int, int);
 	-- Takes the arguments of an 8x8 sprite, it's rotation value and it's x and y positions and uses
 	   arguments in conjuntion to draw the sprite, specifically Pacman related
 void DrawChar(const int [CharacterSize][CharacterSize], int, int, COLORREF);
 	-- Draws a character using it's sprite of CharacterSize variable dimensions taking arguments of
 	   the sprite, it's x and y position and text color
-void DrawMap(int X_pos, int Y_pos);
+void DrawMap(int, int);
 	-- Draws the map using the Map 2D array, taking arguments of an offset y and x distance
 void DrawLogo();
 	-- Draws the logo at a predetermined position
@@ -44,10 +44,10 @@ void DrawReady(bool);
 void ClearArrows();
 	-- Used on the Main Menu for clearing all drawn arrow sprites when the SelectedOption variable
 	   has changed
-bool CollisionCheck(input dir);
+bool CollisionCheck(input);
 	-- Takes an argument of the last input received by the user and checks in the direction of that input
 	   for collision and returns true or false
-bool CheckForDot(input dir);
+bool CheckForDot(input);
 	-- Takes an argument of the last input received by the user and checks in the direction of that input
 	   for a dot sprite value and returns true or false
 bool KeyIsDown(char key, bool, bool);
@@ -59,11 +59,13 @@ double GetTimeSince(double);
 	-- Determines and returns the time since a given clock time in seconds, received through the argument
 double wait(double);
 	-- Halts runtime for the specified amount of time, in seconds, then returns the current time
-void ShowConsoleCursor(bool showFlag);
+void ShowConsoleCursor(bool);
 	-- Takes an argument to determine whether or not the console cursor should be visible
-void MovePacman(input dir);
+void MovePacman(input);
 	-- Takes an argument of the last input received by the user and moves Pacman accordingly
 void ChangePhase();
 	-- Updates Pacmans current phase
-COLORREF GetColor(int color_data);
+COLORREF GetColor(int);
 	-- Returns a COLORREF (RGB) value dependent on the integer argument
+int GetRotationValue(input)
+	-- Takes an argument of the last input received by the user and returns an integer
