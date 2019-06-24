@@ -4,6 +4,7 @@
 #include <conio.h>
 #include <chrono>
 #include <string>
+
 using namespace std;
 using namespace chrono;
 
@@ -14,8 +15,8 @@ int SpriteSize = 16;
 bool EXIT_PROGRAM = false;
 bool EXIT_GAME = false;
 
-int PacmanX = 0;
-int PacmanY = 0;
+double PacmanX = 0;
+double PacmanY = 0;
 int PacmanPhase = 1;
 int CollectedDots = 0;
 double PhaseTimeStamp = 0.0;
@@ -24,14 +25,14 @@ double MoveSpeed = .5;
 int PortalHeight = 17;
 
 enum input { UP, DOWN, LEFT, RIGHT, ENTER, NONE };
-enum state {BEFORE, DURING, AFTER, LIMBO};
+enum state { BEFORE, DURING, AFTER, LIMBO };
 state GameState = DURING;
 input PlayerInput = NONE;
 input StoredInput = NONE;
 bool PlayerHasMadeFirstInput = false;
 bool PausePacmanAnimation = false;
 
-double FPS = 1.0 / 30.0;
+double FPS = 1.0 / 60.0;
 double timer = 0, dt = 0;
 
 HDC console = GetDC(GetConsoleWindow());
@@ -199,47 +200,46 @@ void GameSetup() {
 	PausePacmanAnimation = false;
 	MoveSpeed = .5;
 }
+
 void GameDraw() {
-	Map[PacmanY][PacmanX] = GetSpriteThroughPhase();
+	Map[static_cast<int>(PacmanY)][static_cast<int>(PacmanX)] = GetSpriteThroughPhase();
 	DrawMap();
 	DrawNumber(CollectedDots, 5, 1);
 }
+
 void GameInput() {
 	if (_kbhit()) {
-		PlayerHasMadeFirstInput = true;
-		StoredInput = NONE;
-		switch (_getch()) {
-		case 'w':
-			if (CheckCollision(UP))
-				StoredInput = UP;
-			break;
-		case 's':
-			if (CheckCollision(DOWN))
-				StoredInput = DOWN;
-			break;
-		case 'd':
-			if (CheckCollision(RIGHT))
-				StoredInput = RIGHT;
-			break;
-		case 'a':
-			if (CheckCollision(LEFT))
-				StoredInput = LEFT;
-			break;
+		if (KeyIsDown('W', true, true) && !KeyIsDown('S', true, true) && !CheckCollision(UP)) {
+			PlayerHasMadeFirstInput = true;
+			StoredInput = UP;
+		}
+		if (KeyIsDown('S', true, true) && !KeyIsDown('W', true, true) && !CheckCollision(DOWN)) {
+			PlayerHasMadeFirstInput = true;
+			StoredInput = DOWN;
+		}
+		if (KeyIsDown('D', true, true) && !KeyIsDown('A', true, true) && !CheckCollision(RIGHT)) {
+			PlayerHasMadeFirstInput = true;
+			StoredInput = RIGHT;
+		}
+		if (KeyIsDown('A', true, true) && !KeyIsDown('D', true, true) && !CheckCollision(LEFT)) {
+			PlayerHasMadeFirstInput = true;
+			StoredInput = LEFT;
 		}
 	}
 	if (!CheckCollision(StoredInput)) {
 		PlayerInput = StoredInput;
 		StoredInput = NONE;
 	}
-	if (KeyIsDown('W', true, true) && !CheckCollision(UP))
+	if (KeyIsDown('W', true, true) && !KeyIsDown('S', true, true) && !CheckCollision(UP))
 		PlayerInput = UP;
-	if (KeyIsDown('S', true, true) && !CheckCollision(DOWN))
+	if (KeyIsDown('S', true, true) && !KeyIsDown('W', true, true) && !CheckCollision(DOWN))
 		PlayerInput = DOWN;
-	if (KeyIsDown('D', true, true) && !CheckCollision(RIGHT))
+	if (KeyIsDown('D', true, true) && !KeyIsDown('A', true, true) && !CheckCollision(RIGHT))
 		PlayerInput = RIGHT;
-	if (KeyIsDown('A', true, true) && !CheckCollision(LEFT))
+	if (KeyIsDown('A', true, true) && !KeyIsDown('D', true, true) && !CheckCollision(LEFT))
 		PlayerInput = LEFT;
 }
+
 void GameLogic() {
 	if (GetTimeSince(PhaseTimeStamp) > .01 && !PausePacmanAnimation) {
 		IncrementPacmanPhase();
@@ -254,71 +254,75 @@ void GameLogic() {
 	else if (PacmanX == MapWidth - MapWidth && PacmanY == PortalHeight && PlayerInput == LEFT)
 		PacmanX = MapWidth - 2;
 }
+
 ////////////////
 void MovePacman() {
-	int OldX = PacmanX;
-	int OldY = PacmanY;
+	double OldX = PacmanX;
+	double OldY = PacmanY;
 	if (!CheckCollision(PlayerInput)) {
 		CollectedDotCounter();
 		switch (PlayerInput) {
 		case LEFT:
-			PacmanX--;
+			PacmanX -= 25 * dt;
 			break;
 		case RIGHT:
-			PacmanX++;
+			PacmanX += 25 * dt;
 			break;
 		case DOWN:
-			PacmanY++;
+			PacmanY += 25 * dt;
 			break;
 		case UP:
-			PacmanY--;
+			PacmanY -= 25 * dt;
 			break;
 		}
 	}
 	if (OldX != PacmanX || OldY != PacmanY)
-		Map[OldY][OldX] = 40;
+		Map[static_cast<int>(OldY)][static_cast<int>(OldX)] = 40;
 }
+
 bool CheckCollision(input dir) {
 	switch (dir) {
 	case LEFT:
-		if (Map[PacmanY][PacmanX - 1] == 40 || Map[PacmanY][PacmanX - 1] == 33 || Map[PacmanY][PacmanX - 1] == 32)
+		if (Map[static_cast<int>(PacmanY)][static_cast<int>(PacmanX) - 1] == 40 || Map[static_cast<int>(PacmanY)][static_cast<int>(PacmanX) - 1] == 33 || Map[static_cast<int>(PacmanY)][static_cast<int>(PacmanX) - 1] == 32)
 			return false;
 		break;
 	case RIGHT:
-		if (Map[PacmanY][PacmanX + 1] == 40 || Map[PacmanY][PacmanX + 1] == 33 || Map[PacmanY][PacmanX + 1] == 32)
+		if (Map[static_cast<int>(PacmanY)][static_cast<int>(PacmanX) + 1] == 40 || Map[static_cast<int>(PacmanY)][static_cast<int>(PacmanX) + 1] == 33 || Map[static_cast<int>(PacmanY)][static_cast<int>(PacmanX) + 1] == 32)
 			return false;
 		break;
 	case DOWN:
-		if (Map[PacmanY + 1][PacmanX] == 40 || Map[PacmanY + 1][PacmanX] == 33 || Map[PacmanY + 1][PacmanX] == 32)
+		if (Map[static_cast<int>(PacmanY) + 1][static_cast<int>(PacmanX)] == 40 || Map[static_cast<int>(PacmanY) + 1][static_cast<int>(PacmanX)] == 33 || Map[static_cast<int>(PacmanY) + 1][static_cast<int>(PacmanX)] == 32)
 			return false;
 		break;
 	case UP:
-		if (Map[PacmanY - 1][PacmanX] == 40 || Map[PacmanY - 1][PacmanX] == 33 || Map[PacmanY - 1][PacmanX] == 32)
+		if (Map[static_cast<int>(PacmanY) - 1][static_cast<int>(PacmanX)] == 40 || Map[static_cast<int>(PacmanY) - 1][static_cast<int>(PacmanX)] == 33 || Map[static_cast<int>(PacmanY) - 1][static_cast<int>(PacmanX)] == 32)
 			return false;
 		break;
 	}
 	return true;
 }
+
 void CollectedDotCounter() {
 	switch (PlayerInput) {
 	case UP:
-		if (Map[PacmanY - 1][PacmanX] == 32 || Map[PacmanY - 1][PacmanX] == 33)
+		if (Map[static_cast<int>(PacmanY) - 1][static_cast<int>(PacmanX)] == 32 || Map[static_cast<int>(PacmanY) - 1][static_cast<int>(PacmanX)] == 33)
 			CollectedDots++;
 		break;
 	case DOWN:
-		if (Map[PacmanY + 1][PacmanX] == 32 || Map[PacmanY + 1][PacmanX] == 33)
+		if (Map[static_cast<int>(PacmanY) + 1][static_cast<int>(PacmanX)] == 32 || Map[static_cast<int>(PacmanY) + 1][static_cast<int>(PacmanX)] == 33)
 			CollectedDots++;
 		break;
 	case LEFT:
-		if (Map[PacmanY][PacmanX - 1] == 32 || Map[PacmanY][PacmanX - 1] == 33)
+		if (Map[static_cast<int>(PacmanY)][static_cast<int>(PacmanX) - 1] == 32 || Map[static_cast<int>(PacmanY)][static_cast<int>(PacmanX) - 1] == 33)
 			CollectedDots++;
 		break;
 	case RIGHT:
-		if (Map[PacmanY][PacmanX + 1] == 32 || Map[PacmanY][PacmanX + 1] == 33)
+		if (Map[static_cast<int>(PacmanY)][static_cast<int>(PacmanX) + 1] == 32 || Map[static_cast<int>(PacmanY)][static_cast<int>(PacmanX) + 1] == 33)
 			CollectedDots++;
 		break;
 	}
 }
+
 void DrawNumber(int value, int x_pos, int y_pos) {
 	if (value > 9999999)
 		value = 9999999;
@@ -330,6 +334,7 @@ void DrawNumber(int value, int x_pos, int y_pos) {
 	for (int i = 0; i < 7; i++)
 		Map[y_pos][x_pos + i] = NumberToSpriteIndex(Digits[i]);
 }
+
 int NumberToSpriteIndex(int number) {
 	if (number > 9 || number < 0)
 		return 40;
@@ -358,11 +363,13 @@ int NumberToSpriteIndex(int number) {
 		}
 	}
 }
+
 void IncrementPacmanPhase() {
 	PacmanPhase++;
 	if (PacmanPhase > 3)
 		PacmanPhase = 1;
 }
+
 int GetSpriteThroughPhase() {
 	if (PacmanPhase == 1)
 		return 37;
@@ -387,6 +394,7 @@ int GetSpriteThroughPhase() {
 			return 46;
 	}
 }
+
 void DrawMap() {
 	for (int y = 0; y < MapHeight; y++) {
 		for (int x = 0; x < MapWidth; x++) {
@@ -399,6 +407,7 @@ void DrawMap() {
 		}
 	}
 }
+
 void DrawSprite(int ArrPos, int x, int y, int size) {
 	SelectObject(hdc, bmap);
 	BitBlt(console, x, y, size, size, hdc, SpritePositions[ArrPos - 1][0], SpritePositions[ArrPos - 1][1], SRCCOPY);
