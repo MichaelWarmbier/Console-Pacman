@@ -3,6 +3,7 @@
 #include <tchar.h>
 #include <conio.h>
 #include <chrono>
+#include <string>
 using namespace std;
 using namespace chrono;
 
@@ -16,12 +17,17 @@ bool EXIT_GAME = false;
 int PacmanX = 0;
 int PacmanY = 0;
 int PacmanPhase = 1;
-double FrameTimeStamp = 0.0;
+int CollectedDots = 0;
+double PhaseTimeStamp = 0.0;
+double MovementTimeStamp = 0.0;
+double MoveSpeed = .5;
+int PortalHeight = 17;
 
-enum input {UP, DOWN, LEFT, RIGHT, ENTER, NONE};
+enum input { UP, DOWN, LEFT, RIGHT, ENTER, NONE };
 input PlayerInput = NONE;
+input StoredInput = NONE;
 bool PlayerHasMadeFirstInput = false;
-bool AllowDefaultClear = false;
+bool PausePacmanAnimation = false;
 
 double FPS = 1.0 / 30.0;
 double timer = 0, dt = 0;
@@ -43,21 +49,21 @@ int Map[MapHeight][MapWidth]{
 	01,32,13,12,12,15,32,13,15,32,13,12,12,12,12,12,12,15,32,13,15,32,13,12,12,15,32,03,
 	01,32,14,10,10,16,32, 9,11,32,14,10,10,15,13,10,10,16,32, 9,11,32,14,10,10,16,32,03,
 	01,32,32,32,32,32,32, 9,11,32,32,32,32, 9,11,32,32,32,32, 9,11,32,32,32,32,32,32,03,
-	06,04,04,04,04,15,32, 9,14,12,12,15,00, 9,11,00,13,12,12,16,11,32,13,04,04,04,04, 8,
-	00,00,00,00,00,01,32, 9,13,10,10,16,00,14,16,00,14,10,10,15,11,32,03,00,00,00,00,00,
-	00,00,00,00,00,01,32, 9,11,00,00,00,00,00,00,00,00,00,00, 9,11,32,03,00,00,00,00,00,
-	00,00,00,00,00,01,32, 9,11,00,25,04,29,31,31,30,04,28,00, 9,11,32,03,00,00,00,00,00,
-	02,02,02,02,02,16,32,14,16,00,03,00,00,00,00,00,00,01,00,14,16,32,14,02,02,02,02,02,
-	00,00,00,00,00,00,32,00,00,00,03,00,00,00,00,00,00,01,00,00,00,32,00,00,00,00,00,00,
-	04,04,04,04,04,15,32,13,15,00,03,00,00,00,00,00,00,01,00,13,15,32,13,04,04,04,04,04,
-	00,00,00,00,00,01,32, 9,11,00,26,02,02,02,02,02,02,27,00, 9,11,32,03,00,00,00,00,00,
-	00,00,00,00,00,01,32, 9,11,00,00,00,00,00,00,00,00,00,00, 9,11,32,03,00,00,00,00,00,
-	00,00,00,00,00,01,32, 9,11,00,13,12,12,12,12,12,12,15,00, 9,11,32,03,00,00,00,00,00,
-	05,02,02,02,02,16,32,14,16,00,14,10,10,15,13,10,10,16,00,14,16,32,14,02,02,02,02,07,
+	06,04,04,04,04,15,32, 9,14,12,12,15,40, 9,11,40,13,12,12,16,11,32,13,04,04,04,04, 8,
+	00,00,00,00,00,01,32, 9,13,10,10,16,40,14,16,40,14,10,10,15,11,32,03,00,00,00,00,00,
+	00,00,00,00,00,01,32, 9,11,40,40,40,40,40,40,40,40,40,40, 9,11,32,03,00,00,00,00,00,
+	00,00,00,00,00,01,32, 9,11,40,25,04,29,31,31,30,04,28,40, 9,11,32,03,00,00,00,00,00,
+	02,02,02,02,02,16,32,14,16,40,03,00,00,00,00,00,00,01,40,14,16,32,14,02,02,02,02,02,
+	40,40,40,40,40,40,32,40,40,40,03,00,00,00,00,00,00,01,40,40,40,32,40,40,40,40,40,40,
+	04,04,04,04,04,15,32,13,15,40,03,00,00,00,00,00,00,01,40,13,15,32,13,04,04,04,04,04,
+	00,00,00,00,00,01,32, 9,11,40,26,02,02,02,02,02,02,27,40, 9,11,32,03,00,00,00,00,00,
+	00,00,00,00,00,01,32, 9,11,40,40,40,40,40,40,40,40,40,40, 9,11,32,03,00,00,00,00,00,
+	00,00,00,00,00,01,32, 9,11,40,13,12,12,12,12,12,12,15,40, 9,11,32,03,00,00,00,00,00,
+	05,02,02,02,02,16,32,14,16,40,14,10,10,15,13,10,10,16,40,14,16,32,14,02,02,02,02,07,
 	01,32,32,32,32,32,32,32,32,32,32,32,32, 9,11,32,32,32,32,32,32,32,32,32,32,32,32,03,
 	01,32,13,12,12,15,32,13,12,12,12,15,32, 9,11,32,13,12,12,12,15,32,13,12,12,15,32,03,
 	01,32,14,10,15,11,32,14,10,10,10,16,32,14,16,32,14,10,10,10,16,32, 9,13,10,16,32,03,
-	01,33,32,32, 9,11,32,32,32,32,32,32,32,00,00,32,32,32,32,32,32,32, 9,11,32,32,33,03,
+	01,33,32,32, 9,11,32,32,32,32,32,32,32,40,40,32,32,32,32,32,32,32, 9,11,32,32,33,03,
 	35,12,15,32, 9,11,32,13,15,32,13,12,12,12,12,12,12,15,32,13,15,32, 9,11,32,13,12,19,
 	17,10,16,32,14,16,32, 9,11,32,14,10,10,15,13,10,10,16,32, 9,11,32,14,16,32,14,10,36,
 	01,32,32,32,32,32,32, 9,11,32,32,32,32, 9,11,32,32,32,32, 9,11,32,32,32,32,32,32,03,
@@ -78,9 +84,12 @@ int GetSpriteThroughPhase();
 void DrawMap();
 void DrawSprite(int, int, int, int);
 void IncrementPacmanPhase();
-void ClearPacman(int x, int y);
+int NumberToSpriteIndex(int);
+void ClearPacman(int, int);
 void MovePacman();
-bool CheckCollision(input dir);
+bool CheckCollision(input);
+void CollectedDotCounter();
+void DrawNumber(int, int, int);
 
 bool KeyIsDown(char, bool, bool);
 double GetTime();
@@ -88,7 +97,7 @@ double GetTimeSince(double);
 double wait(double);
 void ShowConsoleCursor(bool);
 
-const int SpritePositions[40][2] = {
+const int SpritePositions[56][2] = {
 	02,22, // Thick Wall Vertical Left 1
 	22,22, // Thick Wall Horizontal Top 2
 	42,22, // Thick Wall Vertical Right 3
@@ -136,13 +145,35 @@ const int SpritePositions[40][2] = {
 	122, 102, // Special Wall Cross R3 36
 
 	02, 202, // Pacman P1 37
-	22, 202, // Pacman P2 38
-	42, 202, // Pacman P3 39
 
-	02,02 // Clear 40
+	22, 202, // Pacman P2 RIGHT 38
+	42, 202, // Pacman P3 RIGHT 39
+
+	02,02, // Clear 40
+
+	62, 202, // Pacman P2 DOWN 41
+	82, 202, // Pacman P3 DOWN 42
+
+	102, 202, // Pacman P2 LEFT 43
+	122, 202, // Pacman P3 LEFT 44
+
+	142, 202, // Pacman P2 UP 45
+	162, 202, // Pacman P3 UP 46
+
+	22, 02, // #0 47
+	42, 02, // #1 48
+	62, 02, // #2 49
+	82, 02, // #3 50
+	102, 02, // #4 51
+	122, 02, // #5 52
+	142, 02, // #6 53
+	162, 02, // #7 54
+	182, 02, // #8 55
+	202, 02, // #9 56
 };
 
 int main() {
+	ShowConsoleCursor(false);
 	GameSetup();
 	while (!EXIT_GAME && (timer += (dt = FPS + wait(FPS)))) {
 		GameDraw();
@@ -159,18 +190,46 @@ void GameSetup() {
 	PacmanX = 13;
 	PacmanY = 26;
 	PlayerInput = NONE;
-	FrameTimeStamp = GetTime();
+	StoredInput = NONE;
+	PhaseTimeStamp = GetTime();
+	MovementTimeStamp = GetTime();
 	PlayerHasMadeFirstInput = false;
-	AllowDefaultClear = false;
+	PausePacmanAnimation = false;
+	MoveSpeed = .5;
 }
 void GameDraw() {
 	Map[PacmanY][PacmanX] = GetSpriteThroughPhase();
 	DrawMap();
+	DrawNumber(CollectedDots, 5, 1);
 }
 void GameInput() {
-	if (_kbhit())
+	if (_kbhit()) {
 		PlayerHasMadeFirstInput = true;
-	if (KeyIsDown('W', true, false) &&  !CheckCollision(UP))
+		StoredInput = NONE;
+		switch (_getch()) {
+		case 'w':
+			if (CheckCollision(UP))
+				StoredInput = UP;
+			break;
+		case 's':
+			if (CheckCollision(DOWN))
+				StoredInput = DOWN;
+			break;
+		case 'd':
+			if (CheckCollision(RIGHT))
+				StoredInput = RIGHT;
+			break;
+		case 'a':
+			if (CheckCollision(LEFT))
+				StoredInput = LEFT;
+			break;
+		}
+	}
+	if (!CheckCollision(StoredInput)) {
+		PlayerInput = StoredInput;
+		StoredInput = NONE;
+	}
+	if (KeyIsDown('W', true, false) && !CheckCollision(UP))
 		PlayerInput = UP;
 	if (KeyIsDown('S', true, false) && !CheckCollision(DOWN))
 		PlayerInput = DOWN;
@@ -180,15 +239,25 @@ void GameInput() {
 		PlayerInput = LEFT;
 }
 void GameLogic() {
-	if (GetTimeSince(FrameTimeStamp) > .5)
+	if (GetTimeSince(PhaseTimeStamp) > .01 && !PausePacmanAnimation) {
 		IncrementPacmanPhase();
-	MovePacman();
+		PhaseTimeStamp = GetTime();
+	}
+	if (GetTimeSince(MovementTimeStamp) >= MoveSpeed * dt) {
+		MovePacman();
+		MovementTimeStamp = GetTime();
+	}
+	if (PacmanX == MapWidth - 2 && PacmanY == PortalHeight && PlayerInput == RIGHT)
+		PacmanX = MapWidth - MapWidth;
+	else if (PacmanX == MapWidth - MapWidth && PacmanY == PortalHeight && PlayerInput == LEFT)
+		PacmanX = MapWidth - 2;
 }
 ////////////////
 void MovePacman() {
 	int OldX = PacmanX;
 	int OldY = PacmanY;
 	if (!CheckCollision(PlayerInput)) {
+		CollectedDotCounter();
 		switch (PlayerInput) {
 		case LEFT:
 			PacmanX--;
@@ -204,34 +273,88 @@ void MovePacman() {
 			break;
 		}
 	}
-	if (OldX != PacmanX || OldY != PacmanY) {
-		ClearPacman(OldX, OldY);
-		Map[OldY][OldX] = 00;
-	}
+	if (OldX != PacmanX || OldY != PacmanY)
+		Map[OldY][OldX] = 40;
 }
 bool CheckCollision(input dir) {
 	switch (dir) {
 	case LEFT:
-		if (Map[PacmanY][PacmanX - 1] == 32 || Map[PacmanY][PacmanX - 1] == 33 || Map[PacmanY][PacmanX - 1] == 00)
+		if (Map[PacmanY][PacmanX - 1] == 40 || Map[PacmanY][PacmanX - 1] == 33 || Map[PacmanY][PacmanX - 1] == 32)
 			return false;
 		break;
 	case RIGHT:
-		if (Map[PacmanY][PacmanX + 1] == 32 || Map[PacmanY][PacmanX + 1] == 33 || Map[PacmanY][PacmanX + 1] == 00)
+		if (Map[PacmanY][PacmanX + 1] == 40 || Map[PacmanY][PacmanX + 1] == 33 || Map[PacmanY][PacmanX + 1] == 32)
 			return false;
 		break;
 	case DOWN:
-		if (Map[PacmanY + 1][PacmanX] == 32 || Map[PacmanY + 1][PacmanX] == 33 || Map[PacmanY + 1][PacmanX] == 00)
+		if (Map[PacmanY + 1][PacmanX] == 40 || Map[PacmanY + 1][PacmanX] == 33 || Map[PacmanY + 1][PacmanX] == 32)
 			return false;
 		break;
 	case UP:
-		if (Map[PacmanY - 1][PacmanX] == 32 || Map[PacmanY - 1][PacmanX] == 33 || Map[PacmanY - 1][PacmanX] == 00)
+		if (Map[PacmanY - 1][PacmanX] == 40 || Map[PacmanY - 1][PacmanX] == 33 || Map[PacmanY - 1][PacmanX] == 32)
 			return false;
 		break;
 	}
 	return true;
 }
-void ClearPacman(int x, int y) {
-	DrawSprite(40, (x * SpriteSize), (y * SpriteSize), SpriteSize);
+void CollectedDotCounter() {
+	switch (PlayerInput) {
+	case UP:
+		if (Map[PacmanY - 1][PacmanX] == 32 || Map[PacmanY - 1][PacmanX] == 33)
+			CollectedDots++;
+		break;
+	case DOWN:
+		if (Map[PacmanY + 1][PacmanX] == 32 || Map[PacmanY + 1][PacmanX] == 33)
+			CollectedDots++;
+		break;
+	case LEFT:
+		if (Map[PacmanY][PacmanX - 1] == 32 || Map[PacmanY][PacmanX - 1] == 33)
+			CollectedDots++;
+		break;
+	case RIGHT:
+		if (Map[PacmanY][PacmanX + 1] == 32 || Map[PacmanY][PacmanX + 1] == 33)
+			CollectedDots++;
+		break;
+	}
+}
+void DrawNumber(int value, int x_pos, int y_pos) {
+	if (value > 9999999)
+		value = 9999999;
+	int Digits[7] = { 0,0,0,0,0,0,0 };
+	for (int i = 6; i >= 0; i--) {
+		Digits[i] = value % 10;
+		value /= 10;
+	}
+	for (int i = 0; i < 7; i++)
+		Map[y_pos][x_pos + i] = NumberToSpriteIndex(Digits[i]);
+}
+int NumberToSpriteIndex(int number) {
+	if (number > 9 || number < 0)
+		return 40;
+	else {
+		switch (number) {
+		case 0:
+			return 47;
+		case 1:
+			return 48;
+		case 2:
+			return 49;
+		case 3:
+			return 50;
+		case 4:
+			return 51;
+		case 5:
+			return 52;
+		case 6:
+			return 53;
+		case 7:
+			return 54;
+		case 8:
+			return 55;
+		case 9:
+			return 56;
+		}
+	}
 }
 void IncrementPacmanPhase() {
 	PacmanPhase++;
@@ -241,22 +364,39 @@ void IncrementPacmanPhase() {
 int GetSpriteThroughPhase() {
 	if (PacmanPhase == 1)
 		return 37;
-	else if (PacmanPhase == 2)
-		return 38;
-	else if (PacmanPhase == 3)
-		return 39;
+	else if (PacmanPhase == 2) {
+		if (PlayerInput == RIGHT || PlayerInput == NONE)
+			return 38;
+		else if (PlayerInput == DOWN)
+			return 41;
+		else if (PlayerInput == LEFT)
+			return 43;
+		else if (PlayerInput == UP)
+			return 45;
+	}
+	else if (PacmanPhase == 3) {
+		if (PlayerInput == RIGHT || PlayerInput == NONE)
+			return 39;
+		if (PlayerInput == DOWN)
+			return 42;
+		else if (PlayerInput == LEFT)
+			return 44;
+		else if (PlayerInput == UP)
+			return 46;
+	}
 }
 void DrawMap() {
 	for (int y = 0; y < MapHeight; y++) {
 		for (int x = 0; x < MapWidth; x++) {
 			if ((Map[y][x] == 37 || Map[y][x] == 38 || Map[y][x] == 39) && !PlayerHasMadeFirstInput)
 				DrawSprite(Map[y][x], (x * SpriteSize) + 8, (y * SpriteSize), SpriteSize);
+			else if (Map[y][x] == 40 && !PlayerHasMadeFirstInput)
+				continue;
 			else if (Map[y][x] > 0)
 				DrawSprite(Map[y][x], (x * SpriteSize), (y * SpriteSize), SpriteSize);
 		}
 	}
 }
-
 void DrawSprite(int ArrPos, int x, int y, int size) {
 	SelectObject(hdc, bmap);
 	BitBlt(console, x, y, size, size, hdc, SpritePositions[ArrPos - 1][0], SpritePositions[ArrPos - 1][1], SRCCOPY);
