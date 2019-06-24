@@ -24,6 +24,8 @@ double MoveSpeed = .5;
 int PortalHeight = 17;
 
 enum input { UP, DOWN, LEFT, RIGHT, ENTER, NONE };
+enum state {BEFORE, DURING, AFTER, LIMBO};
+state GameState = DURING;
 input PlayerInput = NONE;
 input StoredInput = NONE;
 bool PlayerHasMadeFirstInput = false;
@@ -176,11 +178,11 @@ int main() {
 	ShowConsoleCursor(false);
 	GameSetup();
 	while (!EXIT_GAME && (timer += (dt = FPS + wait(FPS)))) {
+		while (GetConsoleWindow() != GetForegroundWindow()) {}
 		GameDraw();
 		GameInput();
 		GameLogic();
 	}
-	system("PAUSE");
 	return 0;
 }
 
@@ -229,13 +231,13 @@ void GameInput() {
 		PlayerInput = StoredInput;
 		StoredInput = NONE;
 	}
-	if (KeyIsDown('W', true, false) && !CheckCollision(UP))
+	if (KeyIsDown('W', true, true) && !CheckCollision(UP))
 		PlayerInput = UP;
-	if (KeyIsDown('S', true, false) && !CheckCollision(DOWN))
+	if (KeyIsDown('S', true, true) && !CheckCollision(DOWN))
 		PlayerInput = DOWN;
-	if (KeyIsDown('D', true, false) && !CheckCollision(RIGHT))
+	if (KeyIsDown('D', true, true) && !CheckCollision(RIGHT))
 		PlayerInput = RIGHT;
-	if (KeyIsDown('A', true, false) && !CheckCollision(LEFT))
+	if (KeyIsDown('A', true, true) && !CheckCollision(LEFT))
 		PlayerInput = LEFT;
 }
 void GameLogic() {
