@@ -7,7 +7,13 @@ Programmed equally by Michael Warmbier & Sam Montanaro.
 Pacman is the original maze-chase arcade game developed by Bandai Namco on May 22, 1980.
 
 
-## Current Design
+## Design
+
+Current Design:
+
+![image](https://user-images.githubusercontent.com/44079959/61318267-aa153c80-a7d2-11e9-888c-a5aa10c4a3e1.png)
+
+Old Design(s):
 
 ![image](https://user-images.githubusercontent.com/44079959/59776884-93d29a00-9281-11e9-8e7e-636f6c5d5833.png)
 
@@ -19,8 +25,8 @@ Pacman is the original maze-chase arcade game developed by Bandai Namco on May 2
 - [ ] Add failure
 - [ ] Add victory
 - [ ] Add ghost functionality
-- [ ] Add options menu
-- [ ] Finish menu visuals
+- [ ] Add Main Menu
 - [ ] Add level system
 - [ ] Add fruit functionality
 - [ ] Add live functionality
+- [ ] Perfect Collision
