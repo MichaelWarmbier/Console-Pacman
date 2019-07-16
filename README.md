@@ -1,6 +1,6 @@
 # Console-Pacman
 
-### Pacman entirely redesigned in C++. 
+### Pacman entirely redesigned using C++. 
 
 Being developed by Michael Warmbier & Sam Montanaro.
 
