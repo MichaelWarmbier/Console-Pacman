@@ -324,6 +324,8 @@ void CollectedDotCounter() {
 }
 
 void DrawNumber(int value, int x_pos, int y_pos) {
+	int ZeroOffset = 0;
+	bool FirstNumber = false;
 	if (value > 9999999)
 		value = 9999999;
 	int Digits[7] = { 0,0,0,0,0,0,0 };
@@ -331,8 +333,15 @@ void DrawNumber(int value, int x_pos, int y_pos) {
 		Digits[i] = value % 10;
 		value /= 10;
 	}
-	for (int i = 0; i < 7; i++)
-		Map[y_pos][x_pos + i] = NumberToSpriteIndex(Digits[i]);
+	for (int i = 0; i < 7; i++) {
+		if (Digits[i] > 0 && !FirstNumber)
+			FirstNumber = true;
+		if (Digits[i] == 0 && !FirstNumber && i != 6) {
+			ZeroOffset++;
+			continue;
+		}
+		Map[y_pos][x_pos + i - ZeroOffset] = NumberToSpriteIndex(Digits[i]);
+	}
 }
 
 int NumberToSpriteIndex(int number) {
