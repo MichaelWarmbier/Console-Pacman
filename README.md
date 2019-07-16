@@ -4,7 +4,7 @@
 
 Programmed equally by Michael Warmbier & Sam Montanaro.
 
-Pacman is the original maze-chase arcade game developed by Bandai Namco on May 22, 1980.
+Pacman is the original maze-chase arcade game developed by Bandai Namco and released on May 22, 1980.
 
 
 ## Design
