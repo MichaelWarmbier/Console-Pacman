@@ -18,15 +18,3 @@ Old Design(s):
 ![image](https://user-images.githubusercontent.com/44079959/59776884-93d29a00-9281-11e9-8e7e-636f6c5d5833.png)
 
 ![image](https://user-images.githubusercontent.com/44079959/59776935-aa78f100-9281-11e9-9c64-e8aadf9b4e88.png)
-
-## To Do
-
-- [ ] Add downtime dependent speed
-- [ ] Add failure
-- [ ] Add victory
-- [ ] Add ghost functionality
-- [ ] Add Main Menu
-- [ ] Add level system
-- [ ] Add fruit functionality
-- [ ] Add live functionality
-- [ ] Perfect Collision
