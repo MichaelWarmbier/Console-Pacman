@@ -8,13 +8,15 @@ void SetConsoleSize(int x, int y);
 #include "Functions.h"
 
 int main() {
-	SetConsoleSize(CW, CH);
 	Menu* Main = new Menu;
-	while (1) {
-		Main->Draw();
-		Main->Input();
-		Main->Logic();
-	}
+	SetConsoleSize(CW, CH);
+	do {
+		do {
+			Main->Draw();
+			Main->Input();
+			Main->Logic();
+		} while (!EXIT_MENU && (timer += (dt = FPS + Wait(FPS))));
+	} while (!EXIT_PROGRAM);
 	delete Main;
 	return EXIT_SUCCESS;
 }
