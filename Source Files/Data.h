@@ -10,11 +10,15 @@ using namespace std;
 using namespace chrono;
 
 HBITMAP bmap = (HBITMAP)LoadImage(NULL, _T("ConsolePacmanSpriteSheet.bmp"), IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
-const int CW = 28;
-const int CH = 36;
+bool EXIT_PROGRAM = false, EXIT_MENU = false, EXIT_GAME = false;
+const int CW = 28, CH = 36;
+
+double FPS = 1.0 / 60.0;
+double timer = 0, dt = 0;
 
 class Menu {
 private:
+
 	enum Input { ENTER, BACK, UP, DOWN, LEFT, RIGHT, NONE };
 	const HDC console = GetDC(GetConsoleWindow());
 	const HDC hdc = CreateCompatibleDC(NULL);
@@ -133,13 +137,12 @@ public:
 			DrawString("Exit", CW / 2 - 3, 16);
 
 				for (int i = 0; i < 4; i++) {
-					DrawSprite(48 + i, CW / 2 - 8, 20 + (2 * i), CSS * 17);
+					DrawSprite(48 + i, CW / 2 - 8, 22 + (2 * i), CSS * 17);
 					if (GhostPhase)
-						DrawSprite(38 + (i * 2), CW / 2 - 10, 20 + (2 * i), CSS);
+						DrawSprite(38 + (i * 2), CW / 2 - 10, 22 + (2 * i), CSS);
 					else
-						DrawSprite(39 + (i * 2), CW / 2 - 10, 20 + (2 * i), CSS);
+						DrawSprite(39 + (i * 2), CW / 2 - 10, 22 + (2 * i), CSS);
 				}
-
 
 			break;
 		case false:
@@ -205,14 +208,15 @@ public:
 			case ENTER:
 				switch (MainOpt) {
 				case 1:
-					// START GAME
+					// Start GAME
 					break;
 				case 2:
 					system("CLS");
 					CurrentMenu = false;
 					break;
 				case 3:
-					// EXIT GAME
+					EXIT_PROGRAM = true;
+					EXIT_MENU = true;
 					break;
 				}
 				break;
