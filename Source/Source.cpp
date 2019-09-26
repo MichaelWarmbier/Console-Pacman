@@ -507,23 +507,23 @@ void PacmanGame::CheckDotData() {
 void PacmanGame::DotGrab() { // WIP
 	switch (PlayerInput) {
 	case LEFT:
-		if (CheckCol(Player.PosX - 4, Player.PosY + 4, 2)) {
-			ChangeTile(static_cast<int>(Player.PosX - 4) / 16, (static_cast<int>(Player.PosY) + 4) / 16, 0);
+		if (CheckCol(Player.PosX + 6, Player.PosY + 4, 2)) {
+			ChangeTile(static_cast<int>(Player.PosX + 6) / 16, (static_cast<int>(Player.PosY) + 4) / 16, 0);
 		}
 		break;
 	case RIGHT:
-		if (CheckCol(Player.PosX + 20, Player.PosY + 4, 2)) {
-			ChangeTile(static_cast<int>(Player.PosX + 20) / 16, (static_cast<int>(Player.PosY) + 4) / 16, 0);
+		if (CheckCol(Player.PosX + 6, Player.PosY + 4, 2)) {
+			ChangeTile(static_cast<int>(Player.PosX + 6) / 16, (static_cast<int>(Player.PosY) + 4) / 16, 0);
 		}
 		break;
 	case UP:
-		if (CheckCol(Player.PosX + 4, Player.PosY - 1, 2)) {
-			ChangeTile(static_cast<int>(Player.PosX + 4) / 16, (static_cast<int>(Player.PosY) - 1) / 16, 0);
+		if (CheckCol(Player.PosX + 4, Player.PosY + 6, 2)) {
+			ChangeTile(static_cast<int>(Player.PosX + 4) / 16, (static_cast<int>(Player.PosY) + 6) / 16, 0);
 		}
 		break;
 	case DOWN:
-		if (CheckCol(Player.PosX + 4, Player.PosY + 20, 2)) {
-			ChangeTile(static_cast<int>(Player.PosX + 4) / 16, (static_cast<int>(Player.PosY) + 20) / 16, 0);
+		if (CheckCol(Player.PosX + 4, Player.PosY + 6, 2)) {
+			ChangeTile(static_cast<int>(Player.PosX + 4) / 16, (static_cast<int>(Player.PosY) + 6) / 16, 0);
 		}
 		break;
 	}
