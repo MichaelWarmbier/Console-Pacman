@@ -136,6 +136,40 @@ const b_int SpriteIDs[256][2]{
 	  48,128, // YD // 102
 	  64,128, // YY // 103
 	  80,128, // Y! // 104
+		  
+	  224,144, // Thick Wall Lean Left // 105
+	  240,144, // Thick Wall Lean Up // 106
+	  0,160, // Thick Wall Lean Down // 107
+	  16,160, // Thick Wall Lean Right // 108
+	  32,160, // Thin Wall Lean Right // 109
+	  48,160, // Thin Wall Lean Up // 110
+	  64,160, // Thin Wall Lean Left // 111
+	  80,160, // Thin Wall Lean Down // 112
+	  96,160, // Gate Hinge Wall From Right // 113
+	  112,160, // Gate Hinge Wall From Left // 114
+	  128,160, // Thick Corner R1 // 115
+	  144,160, // Thick Corner R2 // 116
+	  160,160, // Thick Corner R3 // 117
+	  176,160, // Thick Corner R4 // 118
+	  192,160, // Thin Corner R1 // 119
+	  208,160, // Thin Corner R2 // 120
+	  224,160, // Thin Corner R3 // 121
+	  240,160, // Thin Corner R4 // 122
+	  0,176, // Half Corner R1 // 123
+	  16,176, // Half Corner R2 // 124
+	  32,176, // Half Corner R3 // 125
+	  48,176, // Half Corner R4 // 126
+	  64,176, // Gate Corner R1 // 127
+	  80,176, // Gate Corner R2 // 128
+	  96,176, // Gate Corner R3 // 129
+	  112,176, // Gate Corner R4 // 130
+	  128,176, // Connector R1 // 131
+	  144,176, // Connector R2 // 132
+	  160,176, // Connector R3 // 133
+	  176,176, // Connector R4 // 134
+	  192,176, // Connector R5 // 135
+	  208,176, // Connector R6 // 136
+	  224,176, // Connector R7 // 137
 };
 
 void UpdateTS(double& timestamp);
@@ -214,6 +248,7 @@ private:
 	void DisplayInteger(int x, int y, int integer); // Draws integers as sprites
 	bool CheckCol(double x, double y, int ID) const; // Returns true if tile is collidable
 	void DotGrab();
+	void ToggleMapColor();
 	void ToggleReady();
 	void CheckDotData();
 	void InitializeColBoard();
@@ -235,12 +270,18 @@ public:
 
 int main() {
 	SetWindowDimensions(29, 39);
+	int temp_level = 1;
 	do {
-		PacmanGame* Game = new PacmanGame(1); 
+		PacmanGame* Game = new PacmanGame(temp_level); 
 		while (!EXIT_GAME_F) {
 			Game->Draw();
 			Game->Logic();
 		}
+		if (!EXIT_PROGRAM_F) {
+			temp_level++;
+			EXIT_GAME_F = false;
+		}
+		delete Game;
 	} while (!EXIT_PROGRAM_F);
 	return EXIT_SUCCESS;
 }
@@ -281,55 +322,71 @@ void PacmanGame::InitializeColBoard() {
 }
 
 void PacmanGame::Logic() {
+	if (collected_dots == 0)
+		StateOfGame = AFTER;
 	if (StateOfGame == BEFORE) {
-		ChangeTile(11, 20, 99); 
+		ChangeTile(11, 20, 99);
 		ChangeTile(12, 20, 100);
 		ChangeTile(13, 20, 101);
 		ChangeTile(14, 20, 102);
 		ChangeTile(15, 20, 103);
 		ChangeTile(16, 20, 104);
-		Draw();
+		for (int i = 0; i < 3; i++) {
+			Draw();
+			Player.DrawPlayer();
+		}
 		Wait(3);
 		ToggleReady();
 		StateOfGame = DURING;
 	}
-	UserInput();
-	for (double i = 0; i < Player.speed; i += .2) {
-		if (OldInput != PlayerInput && PlayerInput != NONE)
-			OldInput = PlayerInput;
-		if (!CheckCol(Player.PosX - 1, Player.PosY, 1) && !CheckCol(Player.PosX - 1, Player.PosY + 15, 1) && (PlayerInput == LEFT || OldInput == LEFT)) {
-			Player.PosX--;
-			PlayerInput = LEFT;
+	if (StateOfGame == AFTER) {
+		Wait(1.5);
+		for (int i = 0; i < 8; i++) {
+			Wait(0.3);
+			ToggleMapColor();
+			Draw();
 		}
-		else if (!CheckCol(Player.PosX + 16, Player.PosY, 1) && !CheckCol(Player.PosX + 16, Player.PosY + 15, 1) && (PlayerInput == RIGHT || OldInput == RIGHT)) {
-			Player.PosX++;
-			PlayerInput = RIGHT;
+		EXIT_GAME_F = true;
+	}
+	if (StateOfGame == DURING) {
+		UserInput();
+		for (double i = 0; i < Player.speed; i += .2) {
+			if (OldInput != PlayerInput && PlayerInput != NONE)
+				OldInput = PlayerInput;
+			if (!CheckCol(Player.PosX - 1, Player.PosY, 1) && !CheckCol(Player.PosX - 1, Player.PosY + 15, 1) && (PlayerInput == LEFT || OldInput == LEFT)) {
+				Player.PosX--;
+				PlayerInput = LEFT;
+			}
+			else if (!CheckCol(Player.PosX + 16, Player.PosY, 1) && !CheckCol(Player.PosX + 16, Player.PosY + 15, 1) && (PlayerInput == RIGHT || OldInput == RIGHT)) {
+				Player.PosX++;
+				PlayerInput = RIGHT;
+			}
+			else if (!CheckCol(Player.PosX, Player.PosY - 1, 1) && !CheckCol(Player.PosX + 15, Player.PosY - 1, 1) && (PlayerInput == UP || OldInput == UP)) {
+				Player.PosY--;
+				PlayerInput = UP;
+			}
+			else if (!CheckCol(Player.PosX, Player.PosY + 16, 1) && !CheckCol(Player.PosX + 15, Player.PosY + 16, 1) && (PlayerInput == DOWN || OldInput == DOWN)) {
+				Player.PosY++;
+				PlayerInput = DOWN;
+			}
+			TeleportPacman();
+			Player.DrawPlayer();
 		}
-		else if (!CheckCol(Player.PosX, Player.PosY - 1, 1) && !CheckCol(Player.PosX + 15, Player.PosY - 1, 1) && (PlayerInput == UP || OldInput == UP)) {
-			Player.PosY--;
-			PlayerInput = UP;
+		if (GetTimeSince(_1UP_TS) > .3) {
+			Toggle1UP();
+			UpdateTS(_1UP_TS);
 		}
-		else if (!CheckCol(Player.PosX, Player.PosY + 16, 1) && !CheckCol(Player.PosX + 15, Player.PosY + 16, 1) && (PlayerInput == DOWN || OldInput == DOWN)) {
-			Player.PosY++;
-			PlayerInput = DOWN;
+		if (GetTimeSince(_PP_TS) > .2) {
+			TogglePP();
+			UpdateTS(_PP_TS);
 		}
-		TeleportPacman();
-		Player.DrawPlayer();
+		if (GetTimeSince(Player._PhaseTS) > .08) {
+			Player.TogglePhase();
+			UpdateTS(Player._PhaseTS);
+		}
+		DotGrab();
+		CheckDotData();
 	}
-	if (GetTimeSince(_1UP_TS) > .3) {
-		Toggle1UP();
-		UpdateTS(_1UP_TS);
-	}
-	if (GetTimeSince(_PP_TS) > .2) {
-		TogglePP();
-		UpdateTS(_PP_TS);
-	}
-	if (GetTimeSince(Player._PhaseTS) > .08) {
-		Player.TogglePhase();
-		UpdateTS(Player._PhaseTS);
-	}
-	DotGrab();
-	CheckDotData();
 }
 
 PacmanGame::PacmanGame() {
@@ -339,7 +396,7 @@ PacmanGame::PacmanGame() {
 	PlayerLives = 3;
 	PlayerLevel = 1;
 	StateOfGame = BEFORE;
-	collected_dots = 0;
+	collected_dots = 244;
 	score = 0;
 }
 PacmanGame::PacmanGame(int level) {
@@ -349,7 +406,7 @@ PacmanGame::PacmanGame(int level) {
 	PlayerLives = 3;
 	PlayerLevel = level;
 	StateOfGame = BEFORE;
-	collected_dots = 0;
+	collected_dots = 244;
 	score = 0;
 }
 void PacmanGame::DrawLives() {
@@ -487,12 +544,23 @@ int PacmanGame::GetTileID(int gridx, int gridy) const {
 }
 
 Pacman::Pacman() {
-	SpritePhase = 1;
+	SpritePhase = 2;
 	_PhaseTS = GetTime();
 	PosX = 13 * 16.0 + 8;
 	PosY = 26 * 16.0;
 	PlayerInput = NONE;
 	speed = .4;
+}
+
+void PacmanGame::ToggleMapColor() {
+	for (int y = 0; y < MH; y++) {
+		for (int x = 0; x < MW; x++) {
+			if (GetTileID(x, y) < 77 && GetTileID(x, y) > 43)
+				Board[y][x] += 61;
+			else if (GetTileID(x, y) < 138 && GetTileID(x, y) > 104)
+				Board[y][x] -= 61;
+		}
+	}
 }
 
 bool PacmanGame::CheckCol(double x, double y, int ID) const {
@@ -635,8 +703,7 @@ void SetWindowDimensions(int x, int y) { // Thanks for this, Sam!
 
 	double horzScale = ((double)cxPhysical / (double)cxLogical);
 	double vertScale = ((double)cyPhysical / (double)cyLogical);
-	SetWindowPos(console, HWND_TOP, 0, 0, x * 16.0 / horzScale, y * 16.0 / vertScale, SWP_NOMOVE); // Resize without moving where the console window was placed
-
+	SetWindowPos(console, HWND_TOP, 0, 0, x * 16.0 / horzScale, y * 16.0 / vertScale, SWP_NOMOVE);
 	HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
 	CONSOLE_SCREEN_BUFFER_INFO info;
 	GetConsoleScreenBufferInfo(handle, &info);
