@@ -27,7 +27,7 @@ This version of Pacman is being developed using the standard libraries of C++ an
 
 Current Design:
 
-![image](https://user-images.githubusercontent.com/44079959/65702177-91d26100-e050-11e9-9879-ef9baa097956.png)
+![image](https://cdn.discordapp.com/attachments/531619328760610826/634410502864240640/unknown.png)
 
 Old Design(s):
 
