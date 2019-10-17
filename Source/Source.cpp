@@ -12,13 +12,16 @@ using namespace chrono;
 HDC console = GetDC(GetConsoleWindow());
 HDC hdc = CreateCompatibleDC(NULL);
 HBITMAP bmap = (HBITMAP)LoadImage(NULL, _T("ConsolePacmanSpriteSheet.bmp"), IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
+
 typedef unsigned char b_int; // Defined int with a range of 256
+typedef bool bin_int; // Defined int with a range of 2 (0,1);
 
 const int MH = 36, MW = 28; // Board Dimensions
 
 enum Input { UP, DOWN, LEFT, RIGHT, NONE }; // Datatype labels received player input
 enum GameState { LIMBO, BEFORE, DURING, AFTER }; // Datatype determines state of gameplay
-enum GhostState { CHASE, SCATTER, PANIC }; // Datatype determines state of ghost AIs
+enum class GhostType { INIT, BLINKY, INKY, PINKY, CLYDE}; // Datatype determines ghost type
+enum GhostState { CHASE, SCATTER, PANIC, INTRO}; // Datatype determines state of ghost AIs
 
 Input PlayerInput = NONE;
 Input OldInput = NONE;
@@ -136,7 +139,7 @@ const b_int SpriteIDs[256][2]{
 	  48,128, // YD // 102
 	  64,128, // YY // 103
 	  80,128, // Y! // 104
-		  
+
 	  224,144, // Thick Wall Lean Left // 105
 	  240,144, // Thick Wall Lean Up // 106
 	  0,160, // Thick Wall Lean Down // 107
@@ -170,6 +173,43 @@ const b_int SpriteIDs[256][2]{
 	  192,176, // Connector R5 // 135
 	  208,176, // Connector R6 // 136
 	  224,176, // Connector R7 // 137
+
+	  0, 96, // Blinky R P1 // 138
+	  16, 96, // Blinky R P2 // 139
+	  32, 96, // Blinky D P1 // 140
+	  48, 96, // Blinky D P2 // 141
+	  64, 96, // Blinky U P1 // 142
+	  80, 96, // Blinky U P2 // 143
+	  96, 96, // Blinky L P1 // 144
+	  112, 96, // Blinky L P2 // 145
+
+	  128, 96, // Inky R P1 // 146
+	  144, 96, // Inky R P2 // 147
+	  160, 96, // Inky D P1 // 148
+	  176, 96, // Inky D P2 // 149
+	  192, 96, // Inky U P1 // 150
+	  208, 96, // Inky U P2 // 151
+	  224, 96, // Inky L P1 // 152
+	  240, 96, // Inky L P2 // 153
+
+	  0, 112, // Pinky R P1 // 154
+	  16, 112, // Pinky R P2 // 155
+	  32, 112, // Pinky D P1 // 156
+	  48, 112, // Pinky D P2 // 157
+	  64, 112, // Pinky U P1 // 158
+	  80, 112, // Pinky U P2 // 159
+	  96, 112, // Pinky L P1 // 160
+	  112, 112, // Pinky L P2 // 161
+
+	  128, 112, // Clyde R P1 // 162
+	  144, 112, // Clyde R P2 // 163
+	  160, 112, // Clyde D P1 // 164
+	  176, 112, // Clyde D P2 // 165
+	  192, 112, // Clyde U P1 // 166
+	  208, 112, // Clyde U P2 // 167
+	  224, 112, // Clyde L P1 // 168
+	  240, 112, // Clyde L P2 // 169
+
 };
 
 void UpdateTS(double& timestamp);
@@ -181,8 +221,125 @@ double GetTime(); // Returns current time
 double Wait(double waitTime); // Pauses runtime temporarily
 void SetWindowDimensions(int x, int y);
 
+// CLASS WILL BE WRITTEN WITHOUT INLINE FUNCTIONS LATER
+class Ghost {
+	friend class Pacman;
+	friend class PacmanGame;
+private:
+	Input dir;
+	bin_int phase;
+	double _PhaseTS;
+	GhostType type = GhostType::INIT;
+	GhostState state;
+	double tX, tY;
+	double x, y;
+public:
+	void TogglePhase();
+	Ghost() : type(GhostType::INIT), x(0), y(0), tX(0), tY(0), phase(0), dir(RIGHT), state(CHASE), _PhaseTS(GetTime()) { } 
+	Ghost(const GhostType ghostName) : tX(0), tY(0), phase(0), dir(RIGHT), state(CHASE), _PhaseTS(GetTime()), type(ghostName) {
+		switch (ghostName) {
+		case GhostType::BLINKY:
+			x = 216.0;
+			y = 224.0;
+			break;
+		case GhostType::INKY:
+			x = 200.0;
+			y = 272.0;
+			break;
+		case GhostType::PINKY:
+			x = 216.0;
+			y = 272.0;
+			break;
+		case GhostType::CLYDE:
+			x = 232.0;
+			y = 272.0;
+			break;
+		default:
+			x = 0;
+			y = 0;
+			break;
+		}
+	};
+	void Logic() {
+		DrawGhost();
+		if (GetTimeSince(_PhaseTS) > .08) {
+			_PhaseTS = GetTime();
+			TogglePhase();
+		}
+	}
+	void DrawGhost() const {
+		switch (type) {
+		case GhostType::BLINKY:
+			switch (dir) {
+			case RIGHT:
+				DrawSprite(138 + phase, x, y);
+				break;
+			case DOWN:
+				DrawSprite(140 + phase, x, y);
+				break;
+			case UP:
+				DrawSprite(142 + phase, x, y);
+				break;
+			case LEFT:
+				DrawSprite(144 + phase, x, y);
+				break;
+			}
+			break;
+		case GhostType::INKY:
+			switch (dir) {
+			case RIGHT:
+				DrawSprite(146 + phase, x, y);
+				break;
+			case DOWN:
+				DrawSprite(148 + phase, x, y);
+				break;
+			case UP:
+				DrawSprite(150 + phase, x, y);
+				break;
+			case LEFT:
+				DrawSprite(152 + phase, x, y);
+				break;
+			}
+			break;
+		case GhostType::PINKY:
+			switch (dir) {
+			case RIGHT:
+				DrawSprite(154 + phase, x, y);
+				break;
+			case DOWN:
+				DrawSprite(156 + phase, x, y);
+				break;
+			case UP:
+				DrawSprite(158 + phase, x, y);
+				break;
+			case LEFT:
+				DrawSprite(160 + phase, x, y);
+				break;
+			}
+			break;
+		case GhostType::CLYDE:
+			switch (dir) {
+			case RIGHT:
+				DrawSprite(162 + phase, x, y);
+				break;
+			case DOWN:
+				DrawSprite(164 + phase, x, y);
+				break;
+			case UP:
+				DrawSprite(166 + phase, x, y);
+				break;
+			case LEFT:
+				DrawSprite(168 + phase, x, y);
+				break;
+			}
+			break;
+		}
+	}
+};
+
 class Pacman {
 	friend class PacmanGame;
+	friend class Ghost;
 private:
 	double _PhaseTS; // Timestamp for animation
 	int SpritePhase; // Phase of animation
@@ -196,6 +353,7 @@ public:
 
 class PacmanGame {
 	friend class Pacman;
+	friend class Ghost;
 private:
 	int CollisionBoard[MH * 16][MW * 16];
 	int Board[MH][MW] = {
@@ -252,13 +410,18 @@ private:
 	void ToggleReady();
 	void CheckDotData();
 	void InitializeColBoard();
+	Ghost* Blinky = new Ghost(GhostType::BLINKY);
+	Ghost* Inky = new Ghost(GhostType::INKY);
+	Ghost* Pinky = new Ghost(GhostType::PINKY);
+	Ghost* Clyde = new Ghost(GhostType::CLYDE);
 	Pacman Player;
+
 public:
-	int score;
-	int collected_dots;
+	int score; // Score per game
+	int collected_dots; // Collected dots per round
 	double _1UP_TS, _PP_TS; // Timestamps
-	int PlayerLives;
-	b_int PlayerLevel;
+	int PlayerLives; // Remaining extra lives
+	b_int PlayerLevel; // Level per game
 	void Draw();
 	void Logic();
 	void UserInput();
@@ -266,13 +429,11 @@ public:
 	PacmanGame(int level);
 };
 
-
-
 int main() {
 	SetWindowDimensions(29, 39);
 	int temp_level = 1;
 	do {
-		PacmanGame* Game = new PacmanGame(temp_level); 
+		PacmanGame* Game = new PacmanGame(temp_level);
 		while (!EXIT_GAME_F) {
 			Game->Draw();
 			Game->Logic();
@@ -311,7 +472,7 @@ void PacmanGame::InitializeColBoard() {
 						CollisionBoard[k][h] = 2;
 					}
 				}
-			else 
+			else
 				for (int k = i * 16; k < i * 16 + 16; k++) {
 					for (int h = j * 16; h < j * 16 + 16; h++) {
 						CollisionBoard[k][h] = 0;
@@ -322,6 +483,10 @@ void PacmanGame::InitializeColBoard() {
 }
 
 void PacmanGame::Logic() {
+	Blinky->Logic();
+	Inky->Logic();
+	Pinky->Logic();
+	Clyde->Logic();
 	if (collected_dots == 0)
 		StateOfGame = AFTER;
 	if (StateOfGame == BEFORE) {
@@ -570,9 +735,13 @@ bool PacmanGame::CheckCol(double x, double y, int ID) const {
 }
 
 void Pacman::TogglePhase() {
-		SpritePhase++;
+	SpritePhase++;
 	if (SpritePhase > 3)
 		SpritePhase = 1;
+}
+
+void Ghost::TogglePhase() {
+	phase = !phase;
 }
 
 void PacmanGame::TeleportPacman() {
