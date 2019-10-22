@@ -9,7 +9,7 @@ int main() {
 		Pacman->InitializeBoard(carried_board_data);
 		newGame = false;
 		system("CLS");
-		while (!EXIT_GAME_F) {
+		while ((timer += (dt = FPS + Wait(FPS))) && !EXIT_GAME_F) {
 			if (Pacman->StateOfGame != END)
 				Pacman->Draw();
 			Pacman->Input();
@@ -89,7 +89,9 @@ void Game::InitializeColBoard() {
 }
 
 void Game::Logic() {
-	
+
+	ToggleModes();
+
 	Blinky->Logic();
 	Pinky->Logic();
 
@@ -175,6 +177,7 @@ Game::Game() {
 	InitializeColBoard();
 	UpdateTS(_1UP_TS);
 	UpdateTS(_PP_TS);
+	UpdateTS(_SWAP_TS);
 	PlayerLives = 3;
 	PlayerLevel = 1;
 	StateOfGame = BEFORE;
@@ -185,12 +188,186 @@ Game::Game(int level, int lives) {
 	InitializeColBoard();
 	UpdateTS(_1UP_TS);
 	UpdateTS(_PP_TS);
+	UpdateTS(_SWAP_TS);
 	PlayerLives = lives;
 	PlayerLevel = level;
 	StateOfGame = BEFORE;
 	collected_dots = 244;
 	score = 0;
 }
+
+void Game::TurnAround() {
+	if (Blinky->face == RIGHT)
+		Blinky->face = LEFT;
+	else if (Blinky->face == LEFT)
+		Blinky->face = RIGHT;
+	else if (Blinky->face == UP)
+		Blinky->face = DOWN;
+	else if (Blinky->face == DOWN)
+		Blinky->face = UP;
+	if (Pinky->face == RIGHT)
+		Pinky->face = LEFT;
+	else if (Pinky->face == LEFT)
+		Pinky->face = RIGHT;
+	else if (Pinky->face == UP)
+		Pinky->face = DOWN;
+	else if (Pinky->face == DOWN)
+		Pinky->face = UP;
+}
+
+void Game::ToggleModes() {
+	if (PlayerLevel < 3 && PlayerLevel >= 1) {
+		if (GetTimeSince(_SWAP_TS) > 3 && S[0]) {
+			Blinky->state = SCATTER;
+			Pinky->state = SCATTER;
+			TurnAround();
+			S[0] = 0;
+		}
+		if (GetTimeSince(_SWAP_TS) > 11 && S[1]) {
+			Blinky->state = CHASE;
+			Pinky->state = CHASE;
+			TurnAround();
+			S[1] = 0;
+		}
+		if (GetTimeSince(_SWAP_TS) > 31 && S[2]) {
+			Blinky->state = SCATTER;
+			Pinky->state = SCATTER;
+			TurnAround();
+			S[2] = 0;
+		}
+		if (GetTimeSince(_SWAP_TS) > 38 && S[3]) {
+			Blinky->state = CHASE;
+			Pinky->state = CHASE;
+			TurnAround();
+			S[3] = 0;
+		}
+		if (GetTimeSince(_SWAP_TS) > 58 && S[4]) {
+			Blinky->state = SCATTER;
+			Pinky->state = SCATTER;
+			TurnAround();
+			S[4] = 0;
+		}
+		if (GetTimeSince(_SWAP_TS) > 63 && S[5]) {
+			Blinky->state = CHASE;
+			Pinky->state = CHASE;
+			TurnAround();
+			S[5] = 0;
+		}
+		if (GetTimeSince(_SWAP_TS) > 83 && S[6]) {
+			Blinky->state = SCATTER;
+			Pinky->state = SCATTER;
+			TurnAround();
+			S[6] = 0;
+		}
+		if (GetTimeSince(_SWAP_TS) > 88 && S[7]) {
+			Blinky->state = CHASE;
+			Pinky->state = CHASE;
+			TurnAround();
+			S[7] = 0;
+		}
+	}
+	else if (PlayerLevel < 5 && PlayerLevel >= 2) {
+		if (GetTimeSince(_SWAP_TS) > 3 && S[0]) {
+			Blinky->state = SCATTER;
+			Pinky->state = SCATTER;
+			TurnAround();
+			S[0] = 0;
+		}
+		if (GetTimeSince(_SWAP_TS) > 10 && S[1]) {
+			Blinky->state = CHASE;
+			Pinky->state = CHASE;
+			TurnAround();
+			S[1] = 0;
+		}
+		if (GetTimeSince(_SWAP_TS) > 30 && S[2]) {
+			Blinky->state = SCATTER;
+			Pinky->state = SCATTER;
+			TurnAround();
+			S[2] = 0;
+		}
+		if (GetTimeSince(_SWAP_TS) > 37 && S[3]) {
+			Blinky->state = CHASE;
+			Pinky->state = CHASE;
+			TurnAround();
+			S[3] = 0;
+		}
+		if (GetTimeSince(_SWAP_TS) > 57 && S[4]) {
+			Blinky->state = SCATTER;
+			Pinky->state = SCATTER;
+			TurnAround();
+			S[4] = 0;
+		}
+		if (GetTimeSince(_SWAP_TS) > 62 && S[5]) {
+			Blinky->state = CHASE;
+			Pinky->state = CHASE;
+			TurnAround();
+			S[5] = 0;
+		}
+		if (GetTimeSince(_SWAP_TS) > 1115 && S[6]) {
+			Blinky->state = SCATTER;
+			Pinky->state = SCATTER;
+			TurnAround();
+			S[6] = 0;
+		}
+		if (GetTimeSince(_SWAP_TS) > 1115.01666666666 && S[7]) {
+			Blinky->state = CHASE;
+			Pinky->state = CHASE;
+			TurnAround();
+			S[7] = 0;
+		}
+	}
+	else if (PlayerLevel >= 5) {
+		if (GetTimeSince(_SWAP_TS) > 3 && S[0]) {
+			Blinky->state = SCATTER;
+			Pinky->state = SCATTER;
+			TurnAround();
+			S[0] = 0;
+		}
+		if (GetTimeSince(_SWAP_TS) > 8 && S[1]) {
+			Blinky->state = CHASE;
+			Pinky->state = CHASE;
+			TurnAround();
+			S[1] = 0;
+		}
+		if (GetTimeSince(_SWAP_TS) > 28 && S[2]) {
+			Blinky->state = SCATTER;
+			Pinky->state = SCATTER;
+			TurnAround();
+			S[2] = 0;
+		}
+		if (GetTimeSince(_SWAP_TS) > 33 && S[3]) {
+			Blinky->state = CHASE;
+			Pinky->state = CHASE;
+			TurnAround();
+			S[3] = 0;
+		}
+		if (GetTimeSince(_SWAP_TS) > 54 && S[4]) {
+			Blinky->state = SCATTER;
+			Pinky->state = SCATTER;
+			TurnAround();
+			S[4] = 0;
+		}
+		if (GetTimeSince(_SWAP_TS) > 58 && S[5]) {
+			Blinky->state = CHASE;
+			Pinky->state = CHASE;
+			TurnAround();
+			S[5] = 0;
+		}
+		if (GetTimeSince(_SWAP_TS) > 1095 && S[6]) {
+			Blinky->state = SCATTER;
+			Pinky->state = SCATTER;
+			TurnAround();
+			S[6] = 0;
+		}
+		if (GetTimeSince(_SWAP_TS) > 1095.01666666666 && S[7]) {
+			Blinky->state = CHASE;
+			Pinky->state = CHASE;
+			TurnAround();
+			S[7] = 0;
+		}
+	}
+}
+
 void Game::DrawLives() {
 	for (int i = 0; i < 5; i++) {
 		if (i < PlayerLives - 1)
@@ -506,8 +683,17 @@ void Game::G1::Logic() {
 }
 
 void Game::G1::AI() {
-	tX = pX;
-	tY = pY;
+	switch (state) {
+	case CHASE:
+	case PANIC:
+		tX = pX;
+		tY = pY;
+		break;
+	case SCATTER:
+		tX = 384;
+		tY = -16;
+		break;
+	}
 }
 
 void Game::G1::FindPath() {
@@ -631,22 +817,31 @@ void Game::G2::Logic() {
 }
 
 void Game::G2::AI() {
-	switch (PlayerInput) {
-	case UP:
-		tY = pY - 64;
-		tX = pX - 64;
+	switch (state) {
+	case CHASE:
+	case PANIC:
+		switch (PlayerInput) {
+		case UP:
+			tY = pY - 64;
+			tX = pX - 64;
+			break;
+		case DOWN:
+			tY = pY + 64;
+			tX = pX;
+			break;
+		case LEFT:
+			tY = pY;
+			tX = pX - 64;
+			break;
+		case RIGHT:
+			tY = pY;
+			tX = pX + 64;
+			break;
+		}
 		break;
-	case DOWN:
-		tY = pY + 64;
-		tX = pX;
-		break;
-	case LEFT:
-		tY = pY;
-		tX = pX - 64;
-		break;
-	case RIGHT:
-		tY = pY;
-		tX = pX + 64;
+	case SCATTER:
+		tX = 32;
+		tY = -16;
 		break;
 	}
 }
