@@ -20,7 +20,8 @@ const int MH = 36, MW = 28;
 
 enum DIR { UP, DOWN, LEFT, RIGHT, NONE };
 enum GameState { LIMBO, BEFORE, DURING, AFTER };
-enum GhostState { CHASE, SCATTER, PANIC, INTRO };
+enum GhostType { BLINKY, INKY, PINKY, CLYDE};
+enum GhostState { CHASE, SCATTER, PANIC, EATEN, INTRO };
 
 DIR PlayerInput = NONE;
 DIR OldInput = NONE;
@@ -220,8 +221,6 @@ double GetTime();
 double Wait(double waitTime);
 void SetWindowDimensions(int x, int y);
 double GetDistanceOf(int x1, int y1, int x2, int y2);
-bool CheckCol(int x, int y, int ID);
-int CollisionBoard[MH * 16][MW * 16];
 
 class Game { // Game Class
 private:
@@ -244,10 +243,11 @@ private:
 
 	};
 
-	class Blinky { // Blinky / Shadow [Red]
+	class Ghost { // Blinky / Shadow [Red]
 	private:
 
 		GhostState state;
+		GhostType type;
 		bin_int phase;
 		DIR face;
 
@@ -257,14 +257,28 @@ private:
 		int X, Y;
 		int tX, tY;
 
-		void Draw();
+		// Draw Functions
+		void B_Draw();
+
+		// Logic Functions
+		void B_Logic();
+
+		// Shared Functions
 		void Advance();
 		void TogglePhase();
-		void GetNewTarget();
+		void FindPath();
 
-		Blinky();
+		Ghost();
+		Ghost(GhostType name) : type(name) {
+			X = 216.0; Y = 224.0;
+			tX = 0; tY = 0;
+			state = CHASE; face = RIGHT;
+			_PhaseTS = GetTime();
+			phase = 0;
+		};
 	};
 
+	int CollisionBoard[MH * 16][MW * 16];
 	int Board[MH][MW] = {
 		01,01,01,03,32,27,01,01,01,19,20,18,19,01,30,14,26,29,16,01,01,01,01,01,01,01,01,01,
 		01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,
@@ -320,10 +334,9 @@ private:
 	void ToggleReady();
 	void CheckDotData();
 	void InitializeColBoard();
+	bool GetCol(int x, int y, int ID) const;
 
-	void BlinkyLogic();
-
-	Blinky BLINKY;
+	Ghost Blinky;
 	Player P1;
 
 public:
@@ -335,10 +348,10 @@ public:
 	Game();
 	Game(int level);
 
-	int score; // Score per game
-	int collected_dots; // Collected dots per round
-	double _1UP_TS, _PP_TS; // Timestamps
-	int PlayerLives; // Remaining extra lives
-	b_int PlayerLevel; // Level per game
+	int score;
+	int collected_dots;
+	double _1UP_TS, _PP_TS; // Time stamps
+	int PlayerLives;
+	b_int PlayerLevel;
 };
 
