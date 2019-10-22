@@ -61,7 +61,9 @@ void Game::InitializeColBoard() {
 }
 
 void Game::Logic() {
-	BlinkyLogic();
+	
+	Blinky.B_Logic();
+
 	if (collected_dots == 0)
 		StateOfGame = AFTER;
 	if (StateOfGame == BEFORE) {
@@ -93,19 +95,19 @@ void Game::Logic() {
 		for (double i = 0; i < P1.speed; i += .2) {
 			if (OldInput != PlayerInput && PlayerInput != NONE)
 				OldInput = PlayerInput;
-			if (!CheckCol(P1.X - 1, P1.Y, 1) && !CheckCol(P1.X - 1, P1.Y + 15, 1) && (PlayerInput == LEFT || OldInput == LEFT)) {
+			if (!GetCol(P1.X - 1, P1.Y, 1) && !GetCol(P1.X - 1, P1.Y + 15, 1) && (PlayerInput == LEFT || OldInput == LEFT)) {
 				P1.X--;
 				PlayerInput = LEFT;
 			}
-			else if (!CheckCol(P1.X + 16, P1.Y, 1) && !CheckCol(P1.X + 16, P1.Y + 15, 1) && (PlayerInput == RIGHT || OldInput == RIGHT)) {
+			else if (!GetCol(P1.X + 16, P1.Y, 1) && !GetCol(P1.X + 16, P1.Y + 15, 1) && (PlayerInput == RIGHT || OldInput == RIGHT)) {
 				P1.X++;
 				PlayerInput = RIGHT;
 			}
-			else if (!CheckCol(P1.X, P1.Y - 1, 1) && !CheckCol(P1.X + 15, P1.Y - 1, 1) && (PlayerInput == UP || OldInput == UP)) {
+			else if (!GetCol(P1.X, P1.Y - 1, 1) && !GetCol(P1.X + 15, P1.Y - 1, 1) && (PlayerInput == UP || OldInput == UP)) {
 				P1.Y--;
 				PlayerInput = UP;
 			}
-			else if (!CheckCol(P1.X, P1.Y + 16, 1) && !CheckCol(P1.X + 15, P1.Y + 16, 1) && (PlayerInput == DOWN || OldInput == DOWN)) {
+			else if (!GetCol(P1.X, P1.Y + 16, 1) && !GetCol(P1.X + 15, P1.Y + 16, 1) && (PlayerInput == DOWN || OldInput == DOWN)) {
 				P1.Y++;
 				PlayerInput = DOWN;
 			}
@@ -247,22 +249,22 @@ void Game::CheckDotData() {
 void Game::DotGrab() {
 	switch (PlayerInput) {
 	case LEFT:
-		if (CheckCol(P1.X + 6, P1.Y + 4, 2)) {
+		if (GetCol(P1.X + 6, P1.Y + 4, 2)) {
 			ChangeTile(static_cast<int>(P1.X + 6) / 16, (static_cast<int>(P1.Y) + 4) / 16, 0);
 		}
 		break;
 	case RIGHT:
-		if (CheckCol(P1.X + 6, P1.Y + 4, 2)) {
+		if (GetCol(P1.X + 6, P1.Y + 4, 2)) {
 			ChangeTile(static_cast<int>(P1.X + 6) / 16, (static_cast<int>(P1.Y) + 4) / 16, 0);
 		}
 		break;
 	case UP:
-		if (CheckCol(P1.X + 4, P1.Y + 6, 2)) {
+		if (GetCol(P1.X + 4, P1.Y + 6, 2)) {
 			ChangeTile(static_cast<int>(P1.X + 4) / 16, (static_cast<int>(P1.Y) + 6) / 16, 0);
 		}
 		break;
 	case DOWN:
-		if (CheckCol(P1.X + 4, P1.Y + 6, 2)) {
+		if (GetCol(P1.X + 4, P1.Y + 6, 2)) {
 			ChangeTile(static_cast<int>(P1.X + 4) / 16, (static_cast<int>(P1.Y) + 6) / 16, 0);
 		}
 		break;
@@ -307,18 +309,25 @@ void Game::TeleportPacman() {
 	}
 }
 
+bool Game::GetCol(int x, int y, int ID) const {
+	if (CollisionBoard[y][x] == ID)
+		return true;
+	return false;
+}
+
 void Game::Input() {
 	// Alt controls TBA
-	if (KeyIsDown('W', true, true) && !CheckCol(P1.X, P1.Y - 1, 1) && !CheckCol(P1.X + 15, P1.Y - 1, 1))
+	if (KeyIsDown('W', true, true) && !GetCol(P1.X, P1.Y - 1, 1) && !GetCol(P1.X + 15, P1.Y - 1, 1))
 		PlayerInput = UP;
-	if (KeyIsDown('S', true, true) && !CheckCol(P1.X, P1.Y + 16, 1) && !CheckCol(P1.X + 15, P1.Y + 16, 1))
+	if (KeyIsDown('S', true, true) && !GetCol(P1.X, P1.Y + 16, 1) && !GetCol(P1.X + 15, P1.Y + 16, 1))
 		PlayerInput = DOWN;
-	if (KeyIsDown('A', true, true) && !CheckCol(P1.X - 1, P1.Y, 1) && !CheckCol(P1.X - 1, P1.Y + 15, 1))
+	if (KeyIsDown('A', true, true) && !GetCol(P1.X - 1, P1.Y, 1) && !GetCol(P1.X - 1, P1.Y + 15, 1))
 		PlayerInput = LEFT;
-	if (KeyIsDown('D', true, true) && !CheckCol(P1.X + 16, P1.Y, 1) && !CheckCol(P1.X + 16, P1.Y + 15, 1))
+	if (KeyIsDown('D', true, true) && !GetCol(P1.X + 16, P1.Y, 1) && !GetCol(P1.X + 16, P1.Y + 15, 1))
 		PlayerInput = RIGHT;
 
 }
+
 
 /////////////////////////////////////////////////////
 // Player Class Implementation
@@ -379,30 +388,21 @@ void Game::Player::Draw() const {
 	}
 }
 
-void Game::BlinkyLogic() {
-	BLINKY.Draw();
-	if (GetTimeSince(BLINKY._PhaseTS))
-		BLINKY.TogglePhase();
-	BLINKY.Advance();
-	if (BLINKY.X % 16 == 0 && BLINKY.Y % 16 == 0)
-		BLINKY.GetNewTarget();
-}
-
 /////////////////////////////////////////////////////
 // Ghost Class Implementation
 /////////////////////////////////////////////////////
 
-// BLINKY //
 
-Game::Blinky::Blinky() {
+Game::Ghost::Ghost() {
 	X = 216.0; Y = 224.0;
 	tX = 0; tY = 0;
+	type = BLINKY;
 	state = CHASE; face = RIGHT;
 	_PhaseTS = GetTime();
 	phase = 0;
 }
 
-void Game::Blinky::Draw() {
+void Game::Ghost::B_Draw() {
 	switch (face) {
 	case RIGHT:
 		DrawSprite(138 + phase, X, Y);
@@ -419,11 +419,11 @@ void Game::Blinky::Draw() {
 	}
 }
 
-void Game::Blinky::TogglePhase() {
+void Game::Ghost::TogglePhase() {
 	phase = !phase;
 }
 
-void Game::Blinky::Advance() {
+void Game::Ghost::Advance() {
 	switch (face) {
 	case RIGHT:
 		X++;
@@ -440,8 +440,17 @@ void Game::Blinky::Advance() {
 	}
 }
 
-void Game::Blinky::GetNewTarget() {
-	//tba
+void Game::Ghost::B_Logic() {
+	B_Draw();
+	if (GetTimeSince(_PhaseTS))
+		TogglePhase();
+	Advance();
+	if (X % 16 == 0 && Y % 16 == 0)
+		FindPath();
+}
+
+void Game::Ghost::FindPath() {
+	double D_Down = 0, D_Up = 0, D_Left = 0, D_Right = 0;
 }
 
 /////////////////////////////////////////////////////
@@ -454,12 +463,6 @@ double GetDistanceOf(int x1, int y1, int x2, int y2) {
 
 void UpdateTS(double& timestamp) {
 	timestamp = GetTime();
-}
-
-bool CheckCol(int x, int y, int ID) {
-	if (CollisionBoard[y][x] == ID)
-		return true;
-	return false;
 }
 
 bool KeyIsDown(char key, bool pressed, bool held) {
