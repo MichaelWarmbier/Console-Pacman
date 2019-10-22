@@ -2,19 +2,31 @@
 
 int main() {
 	SetWindowDimensions(29, 39);
-	int temp_level = 1;
+	int carried_level = 1, carried_lives = 3;
+	int carried_board_data[MH][MW];
 	do {
-		Game* Pacman = new Game;
-		//Game * Pacman = new Game(temp_level);
+		Game* Pacman = new Game(carried_level, carried_lives);
+		Pacman->InitializeBoard(carried_board_data);
+		newGame = false;
+		system("CLS");
 		while (!EXIT_GAME_F) {
-			Pacman->Draw();
+			if (Pacman->StateOfGame != END)
+				Pacman->Draw();
 			Pacman->Input();
 			Pacman->Logic();
+			while (GetConsoleWindow() != GetForegroundWindow()) {}
+		}
+		if (Pacman->StateOfGame == END) {
+			if (Pacman->PlayerLives <= 1)
+				EXIT_PROGRAM_F = true;
+			carried_lives--;
+			CopyBoardData(Pacman->Board, carried_board_data);
 		}
 		if (!EXIT_PROGRAM_F) {
-			temp_level++;
-			EXIT_GAME_F = false;
+			if (Pacman->StateOfGame != END)
+				carried_level++;
 		}
+		EXIT_GAME_F = false;
 		delete Pacman;
 	} while (!EXIT_PROGRAM_F);
 	return EXIT_SUCCESS;
@@ -31,8 +43,24 @@ void Game::Draw() {
 	DrawLevelDisplay();
 	DisplayInteger(1, 1, score);
 	DisplayInteger(11, 1, 0);
-	DisplayInteger(10, MH - 2, collected_dots);
+	if (ShowRemainingPellets)
+		DisplayInteger(10, MH - 2, collected_dots);
 	P1.Draw();
+}
+
+void Game::GameOver() {
+	Wait(2);
+	double _TS = GetTime();
+	DrawSprite(1, Blinky->X, Blinky->Y);
+	DrawSprite(1, Pinky->X, Pinky->Y);
+	for (int i = 0; i < 12; i++) {
+		DrawSprite(1, pX, pY);
+		DrawSprite(174 + i, pX, pY);
+		Wait(.15);
+	}
+	Wait(2);
+	EXIT_GAME_F = true;
+	StateOfGame = END;
 }
 
 void Game::InitializeColBoard() {
@@ -62,7 +90,11 @@ void Game::InitializeColBoard() {
 
 void Game::Logic() {
 	
-	Blinky.B_Logic();
+	Blinky->Logic();
+	Pinky->Logic();
+
+	if ((GetDistanceOf(Blinky->X, Blinky->Y, pX, pY) < 6 || GetDistanceOf(Pinky->X, Pinky->Y, pX, pY) < 6) && CanGameOver)
+		GameOver();
 
 	if (collected_dots == 0)
 		StateOfGame = AFTER;
@@ -89,29 +121,30 @@ void Game::Logic() {
 			Draw();
 		}
 		EXIT_GAME_F = true;
+		newGame = true;
 	}
 	if (StateOfGame == DURING) {
 		Input();
 		for (double i = 0; i < P1.speed; i += .2) {
 			if (OldInput != PlayerInput && PlayerInput != NONE)
 				OldInput = PlayerInput;
-			if (!GetCol(P1.X - 1, P1.Y, 1) && !GetCol(P1.X - 1, P1.Y + 15, 1) && (PlayerInput == LEFT || OldInput == LEFT)) {
-				P1.X--;
+			if (!GetCol(pX - 1, pY, 1) && !GetCol(pX - 1, pY + 15, 1) && (PlayerInput == LEFT || OldInput == LEFT)) {
+				pX--;
 				PlayerInput = LEFT;
 			}
-			else if (!GetCol(P1.X + 16, P1.Y, 1) && !GetCol(P1.X + 16, P1.Y + 15, 1) && (PlayerInput == RIGHT || OldInput == RIGHT)) {
-				P1.X++;
+			else if (!GetCol(pX + 16, pY, 1) && !GetCol(pX + 16, pY + 15, 1) && (PlayerInput == RIGHT || OldInput == RIGHT)) {
+				pX++;
 				PlayerInput = RIGHT;
 			}
-			else if (!GetCol(P1.X, P1.Y - 1, 1) && !GetCol(P1.X + 15, P1.Y - 1, 1) && (PlayerInput == UP || OldInput == UP)) {
-				P1.Y--;
+			else if (!GetCol(pX, pY - 1, 1) && !GetCol(pX + 15, pY - 1, 1) && (PlayerInput == UP || OldInput == UP)) {
+				pY--;
 				PlayerInput = UP;
 			}
-			else if (!GetCol(P1.X, P1.Y + 16, 1) && !GetCol(P1.X + 15, P1.Y + 16, 1) && (PlayerInput == DOWN || OldInput == DOWN)) {
-				P1.Y++;
+			else if (!GetCol(pX, pY + 16, 1) && !GetCol(pX + 15, pY + 16, 1) && (PlayerInput == DOWN || OldInput == DOWN)) {
+				pY++;
 				PlayerInput = DOWN;
 			}
-			TeleportPacman();
+			Teleport();
 			P1.Draw();
 		}
 		if (GetTimeSince(_1UP_TS) > .3) {
@@ -131,6 +164,13 @@ void Game::Logic() {
 	}
 }
 
+void Game::InitializeBoard(int data[MH][MW]) {
+	if (!newGame) {
+		CopyBoardData(data, Board);
+		newGame = true;
+	}
+}
+
 Game::Game() {
 	InitializeColBoard();
 	UpdateTS(_1UP_TS);
@@ -141,11 +181,11 @@ Game::Game() {
 	collected_dots = 244;
 	score = 0;
 }
-Game::Game(int level) {
+Game::Game(int level, int lives) {
 	InitializeColBoard();
 	UpdateTS(_1UP_TS);
 	UpdateTS(_PP_TS);
-	PlayerLives = 3;
+	PlayerLives = lives;
 	PlayerLevel = level;
 	StateOfGame = BEFORE;
 	collected_dots = 244;
@@ -155,8 +195,10 @@ void Game::DrawLives() {
 	for (int i = 0; i < 5; i++) {
 		if (i < PlayerLives - 1)
 			ChangeTile(i + 3, MH - 2, 93);
-		else
+		else {
 			ChangeTile(i + 3, MH - 2, 1);
+			DrawSprite(1, (i + 3) * 16, (MH - 2) * 16);
+		}
 	}
 }
 
@@ -249,23 +291,23 @@ void Game::CheckDotData() {
 void Game::DotGrab() {
 	switch (PlayerInput) {
 	case LEFT:
-		if (GetCol(P1.X + 6, P1.Y + 4, 2)) {
-			ChangeTile(static_cast<int>(P1.X + 6) / 16, (static_cast<int>(P1.Y) + 4) / 16, 0);
+		if (GetCol(pX + 6, pY + 4, 2)) {
+			ChangeTile(static_cast<int>(pX + 6) / 16, (static_cast<int>(pY) + 4) / 16, 0);
 		}
 		break;
 	case RIGHT:
-		if (GetCol(P1.X + 6, P1.Y + 4, 2)) {
-			ChangeTile(static_cast<int>(P1.X + 6) / 16, (static_cast<int>(P1.Y) + 4) / 16, 0);
+		if (GetCol(pX + 6, pY + 4, 2)) {
+			ChangeTile(static_cast<int>(pX + 6) / 16, (static_cast<int>(pY) + 4) / 16, 0);
 		}
 		break;
 	case UP:
-		if (GetCol(P1.X + 4, P1.Y + 6, 2)) {
-			ChangeTile(static_cast<int>(P1.X + 4) / 16, (static_cast<int>(P1.Y) + 6) / 16, 0);
+		if (GetCol(pX + 4, pY + 6, 2)) {
+			ChangeTile(static_cast<int>(pX + 4) / 16, (static_cast<int>(pY) + 6) / 16, 0);
 		}
 		break;
 	case DOWN:
-		if (GetCol(P1.X + 4, P1.Y + 6, 2)) {
-			ChangeTile(static_cast<int>(P1.X + 4) / 16, (static_cast<int>(P1.Y) + 6) / 16, 0);
+		if (GetCol(pX + 4, pY + 6, 2)) {
+			ChangeTile(static_cast<int>(pX + 4) / 16, (static_cast<int>(pY) + 6) / 16, 0);
 		}
 		break;
 	}
@@ -296,15 +338,15 @@ void Game::ToggleMapColor() {
 	}
 }
 
-void Game::TeleportPacman() {
-	if (P1.Y == 272) {
-		if (P1.X == 432) {
-			DrawSprite(1, P1.X, P1.Y);
-			P1.X = 0;
+void Game::Teleport() {
+	if (pY == 272) {
+		if (pX == 432) {
+			DrawSprite(1, pX, pY);
+			pX = 0;
 		}
-		else if (P1.X == 0) {
-			DrawSprite(1, P1.X, P1.Y);
-			P1.X = 432;
+		else if (pX == 0) {
+			DrawSprite(1, pX, pY);
+			pX = 432;
 		}
 	}
 }
@@ -317,17 +359,16 @@ bool Game::GetCol(int x, int y, int ID) const {
 
 void Game::Input() {
 	// Alt controls TBA
-	if (KeyIsDown('W', true, true) && !GetCol(P1.X, P1.Y - 1, 1) && !GetCol(P1.X + 15, P1.Y - 1, 1))
+	if (KeyIsDown('W', true, true) && !GetCol(pX, pY - 1, 1) && !GetCol(pX + 15, pY - 1, 1))
 		PlayerInput = UP;
-	if (KeyIsDown('S', true, true) && !GetCol(P1.X, P1.Y + 16, 1) && !GetCol(P1.X + 15, P1.Y + 16, 1))
+	if (KeyIsDown('S', true, true) && !GetCol(pX, pY + 16, 1) && !GetCol(pX + 15, pY + 16, 1))
 		PlayerInput = DOWN;
-	if (KeyIsDown('A', true, true) && !GetCol(P1.X - 1, P1.Y, 1) && !GetCol(P1.X - 1, P1.Y + 15, 1))
+	if (KeyIsDown('A', true, true) && !GetCol(pX - 1, pY, 1) && !GetCol(pX - 1, pY + 15, 1))
 		PlayerInput = LEFT;
-	if (KeyIsDown('D', true, true) && !GetCol(P1.X + 16, P1.Y, 1) && !GetCol(P1.X + 16, P1.Y + 15, 1))
+	if (KeyIsDown('D', true, true) && !GetCol(pX + 16, pY, 1) && !GetCol(pX + 16, pY + 15, 1))
 		PlayerInput = RIGHT;
 
 }
-
 
 /////////////////////////////////////////////////////
 // Player Class Implementation
@@ -336,8 +377,8 @@ void Game::Input() {
 Game::Player::Player() {
 	SpritePhase = 2;
 	_PhaseTS = GetTime();
-	X = 13 * 16.0 + 8;
-	Y = 26 * 16.0;
+	pX = 13 * 16.0 + 8;
+	pY = 26 * 16.0;
 	PlayerInput = NONE;
 	speed = .4;
 }
@@ -351,37 +392,37 @@ void Game::Player::TogglePhase() {
 void Game::Player::Draw() const {
 	switch (SpritePhase) {
 	case 1:
-		DrawSprite(88, X, Y);
+		DrawSprite(88, pX, pY);
 		break;
 	case 2:
 		switch (PlayerInput) {
 		case LEFT:
-			DrawSprite(93, X, Y);
+			DrawSprite(93, pX, pY);
 			break;
 		case RIGHT:
-			DrawSprite(89, X, Y);
+			DrawSprite(89, pX, pY);
 			break;
 		case UP:
-			DrawSprite(95, X, Y);
+			DrawSprite(95, pX, pY);
 			break;
 		case DOWN:
-			DrawSprite(91, X, Y);
+			DrawSprite(91, pX, pY);
 			break;
 		}
 		break;
 	case 3:
 		switch (PlayerInput) {
 		case LEFT:
-			DrawSprite(94, X, Y);
+			DrawSprite(94, pX, pY);
 			break;
 		case RIGHT:
-			DrawSprite(90, X, Y);
+			DrawSprite(90, pX, pY);
 			break;
 		case UP:
-			DrawSprite(96, X, Y);
+			DrawSprite(96, pX, pY);
 			break;
 		case DOWN:
-			DrawSprite(92, X, Y);
+			DrawSprite(92, pX, pY);
 			break;
 		}
 		break;
@@ -392,17 +433,9 @@ void Game::Player::Draw() const {
 // Ghost Class Implementation
 /////////////////////////////////////////////////////
 
+// BLINKY
 
-Game::Ghost::Ghost() {
-	X = 216.0; Y = 224.0;
-	tX = 0; tY = 0;
-	type = BLINKY;
-	state = CHASE; face = RIGHT;
-	_PhaseTS = GetTime();
-	phase = 0;
-}
-
-void Game::Ghost::B_Draw() {
+void Game::G1::Draw() {
 	switch (face) {
 	case RIGHT:
 		DrawSprite(138 + phase, X, Y);
@@ -419,38 +452,251 @@ void Game::Ghost::B_Draw() {
 	}
 }
 
-void Game::Ghost::TogglePhase() {
+void Game::G1::TogglePhase() {
 	phase = !phase;
 }
 
-void Game::Ghost::Advance() {
+void Game::G1::Teleport() {
+	if (Y == 272) {
+		if (X == 432) {
+			DrawSprite(1, X, Y);
+			X = 0;
+		}
+		else if (X == 0) {
+			DrawSprite(1, X, Y);
+			X = 432;
+		}
+	}
+}
+
+void Game::G1::Advance() {
+	double mSpeed = speed;
+	if (Y == 272 && ((X <= 96 && X >= 0) || (X >= 336 && X <= 432)))
+		mSpeed = speed / 2;
+	for (double i = 0; i < mSpeed; i += .2) {
+		if (X % 16 == 0 && Y % 16 == 0 && i != 0)
+			break;
+		switch (face) {
+		case RIGHT:
+			X++;
+			break;
+		case LEFT:
+			X--;
+			break;
+		case DOWN:
+			Y++;
+			break;
+		case UP:
+			Y--;
+			break;
+		}
+		Draw();
+	}
+}
+
+void Game::G1::Logic() {
+	AI();
+	Draw();
+	if (GetTimeSince(_PhaseTS))
+		TogglePhase();
+	if ((X % 16 == 0 && Y % 16 == 0))
+		FindPath();
+	Advance();
+	Teleport();
+}
+
+void Game::G1::AI() {
+	tX = pX;
+	tY = pY;
+}
+
+void Game::G1::FindPath() {
+	bool D = true, U = true, L = true, R = true;
+	double D_Down = -1, D_Up = -1, D_Left = -1, D_Right = -1;
+	double top_value = 0;
+
+	if (face == DOWN || !CheckTile(X / 16, Y / 16 - 1) || ((Y == 416 || Y == 224) && X >= 176 && X <= 272)) // Up Check
+		U = false;
+	else
+		D_Up = GetDistanceOf(X, Y - 16, tX, tY);
+	if (face == UP || !CheckTile(X / 16, Y / 16 + 1) || (Y == 224 && X >= 176 && X <= 272)) // Down Check
+		D = false;
+	else
+		D_Down = GetDistanceOf(X, Y + 16, tX, tY);
+	if (face == RIGHT || !CheckTile(X / 16 - 1, Y / 16)) // Left Check
+		L = false;
+	else
+		D_Left = GetDistanceOf(X - 16, Y, tX, tY);
+	if (face == LEFT || !CheckTile(X / 16 + 1, Y / 16)) // Right Check
+		R = false;
+	else
+		D_Right = GetDistanceOf(X + 16, Y, tX, tY);
+
+	if (U && D_Up != -1)
+		top_value = D_Up;
+	if ((D_Right <= top_value || top_value == 0) && R && D_Right != -1)
+		top_value = D_Right;
+	if ((D_Down <= top_value || top_value == 0) && D && D_Down != -1)
+		top_value = D_Down;
+	if ((D_Left <= top_value || top_value == 0) && L && D_Left != -1)
+		top_value = D_Left;
+		
+	if (top_value == D_Up)
+		face = UP;
+	else if (top_value == D_Right)
+		face = RIGHT;
+	else if (top_value == D_Down)
+		face = DOWN;
+	else if (top_value == D_Left)
+		face = LEFT;
+
+}
+
+bool Game::G1::CheckTile(int x, int y) {
+	if (GhostBoard[y][x] == 78 || GhostBoard[y][x] == 79 || GhostBoard[y][x] == 00 || GhostBoard[y][x] == 01 || GhostBoard[y][x] == 97)
+		return true;
+	return false;
+}
+
+// Inky
+
+void Game::G2::Draw() {
 	switch (face) {
 	case RIGHT:
-		X++;
+		DrawSprite(154 + phase, X, Y);
 		break;
 	case LEFT:
-		X--;
+		DrawSprite(160 + phase, X, Y);
 		break;
 	case DOWN:
+		DrawSprite(156 + phase, X, Y);
 		break;
-		Y++;
 	case UP:
-		Y--;
+		DrawSprite(158 + phase, X, Y);
 		break;
 	}
 }
 
-void Game::Ghost::B_Logic() {
-	B_Draw();
-	if (GetTimeSince(_PhaseTS))
-		TogglePhase();
-	Advance();
-	if (X % 16 == 0 && Y % 16 == 0)
-		FindPath();
+void Game::G2::TogglePhase() {
+	phase = !phase;
 }
 
-void Game::Ghost::FindPath() {
-	double D_Down = 0, D_Up = 0, D_Left = 0, D_Right = 0;
+void Game::G2::Teleport() {
+	if (Y == 272) {
+		if (X == 432) {
+			DrawSprite(1, X, Y);
+			X = 0;
+		}
+		else if (X == 0) {
+			DrawSprite(1, X, Y);
+			X = 432;
+		}
+	}
+}
+
+void Game::G2::Advance() {
+	double mSpeed = speed;
+	if (Y == 272 && ((X <= 96 && X >= 0) || (X >= 336 && X <= 432)))
+		mSpeed = speed / 2;
+	for (double i = 0; i < mSpeed; i += .2) {
+		if (X % 16 == 0 && Y % 16 == 0 && i != 0)
+			break;
+		switch (face) {
+		case RIGHT:
+			X++;
+			break;
+		case LEFT:
+			X--;
+			break;
+		case DOWN:
+			Y++;
+			break;
+		case UP:
+			Y--;
+			break;
+		}
+		Draw();
+	}
+}
+
+void Game::G2::Logic() {
+	AI();
+	Draw();
+	if (GetTimeSince(_PhaseTS))
+		TogglePhase();
+	if ((X % 16 == 0 && Y % 16 == 0))
+		FindPath();
+	Advance();
+	Teleport();
+}
+
+void Game::G2::AI() {
+	switch (PlayerInput) {
+	case UP:
+		tY = pY - 64;
+		tX = pX - 64;
+		break;
+	case DOWN:
+		tY = pY + 64;
+		tX = pX;
+		break;
+	case LEFT:
+		tY = pY;
+		tX = pX - 64;
+		break;
+	case RIGHT:
+		tY = pY;
+		tX = pX + 64;
+		break;
+	}
+}
+
+void Game::G2::FindPath() {
+	bool D = true, U = true, L = true, R = true;
+	double D_Down = -1, D_Up = -1, D_Left = -1, D_Right = -1;
+	double top_value = 0;
+
+	if (face == DOWN || !CheckTile(X / 16, Y / 16 - 1) || ((Y == 416 || Y == 224) && X >= 176 && X <= 272)) // Up Check
+		U = false;
+	else
+		D_Up = GetDistanceOf(X, Y - 16, tX, tY);
+	if (face == UP || !CheckTile(X / 16, Y / 16 + 1) || (Y == 224 && X >= 176 && X <= 272)) // Down Check
+		D = false;
+	else
+		D_Down = GetDistanceOf(X, Y + 16, tX, tY);
+	if (face == RIGHT || !CheckTile(X / 16 - 1, Y / 16)) // Left Check
+		L = false;
+	else
+		D_Left = GetDistanceOf(X - 16, Y, tX, tY);
+	if (face == LEFT || !CheckTile(X / 16 + 1, Y / 16)) // Right Check
+		R = false;
+	else
+		D_Right = GetDistanceOf(X + 16, Y, tX, tY);
+
+	if (U && D_Up != -1)
+		top_value = D_Up;
+	if ((D_Right <= top_value || top_value == 0) && R && D_Right != -1)
+		top_value = D_Right;
+	if ((D_Down <= top_value || top_value == 0) && D && D_Down != -1)
+		top_value = D_Down;
+	if ((D_Left <= top_value || top_value == 0) && L && D_Left != -1)
+		top_value = D_Left;
+
+	if (top_value == D_Up)
+		face = UP;
+	else if (top_value == D_Right)
+		face = RIGHT;
+	else if (top_value == D_Down)
+		face = DOWN;
+	else if (top_value == D_Left)
+		face = LEFT;
+
+}
+
+bool Game::G2::CheckTile(int x, int y) {
+	if (GhostBoard[y][x] == 78 || GhostBoard[y][x] == 79 || GhostBoard[y][x] == 00 || GhostBoard[y][x] == 01 || GhostBoard[y][x] == 97 || GhostBoard[y][x] == 77)
+		return true;
+	return false;
 }
 
 /////////////////////////////////////////////////////
@@ -486,6 +732,21 @@ double Wait(double waitTime) {
 	return GetTimeSince(startTime + waitTime);
 }
 
+void CopyBoardData(int Arr1[MH][MW], int Arr2[MW][MW]) {
+	for (int y = 0; y < MH; y++) {
+		for (int x = 0; x < MW; x++) {
+			Arr2[y][x] = Arr1[y][x];
+		}
+	}
+}
+
+void InitializeBoardData(int Arr[MH][MW]) {
+	for (int y = 0; y < MH; y++) {
+		for (int x = 0; x < MW; x++)
+			Arr[y][x] = 0;
+	}
+}
+
 void ShowConsoleCursor(bool showFlag) {
 	HANDLE out = GetStdHandle(STD_OUTPUT_HANDLE);
 
@@ -497,10 +758,15 @@ void ShowConsoleCursor(bool showFlag) {
 }
 
 void DrawSprite(int spriteID, double X, double Y) {
+	SelectObject(hdc, bmap);
 	if (spriteID > 0) {
-		SelectObject(hdc, bmap);
-		BitBlt(console, (int)X, (int)Y, 16, 16, hdc, SpriteIDs[spriteID - 1][0], SpriteIDs[spriteID - 1][1], SRCCOPY);
-		DeleteObject(bmap);
+		if (spriteID == 78)
+			BitBlt(console, X + 6, Y + 6, 4, 4, hdc, SpriteIDs[spriteID - 1][0] + 6, SpriteIDs[spriteID - 1][1] + 6, SRCCOPY);
+		else if (spriteID == 77)
+			BitBlt(console, X, Y + 11, 16, 4, hdc, SpriteIDs[spriteID - 1][0], SpriteIDs[spriteID - 1][1] + 11, SRCCOPY);
+		else
+			BitBlt(console, X, Y, 16, 16, hdc, SpriteIDs[spriteID - 1][0], SpriteIDs[spriteID - 1][1], SRCCOPY);
+	DeleteObject(bmap);
 	}
 }
 
