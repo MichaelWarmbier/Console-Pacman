@@ -23,6 +23,8 @@ typedef bool bin_int;
 const int MH = 36, MW = 28;
 int pX, pY; // Player Position
 
+double FPS = 1.0 / 150.0;
+double timer = 0, dt = 0;
 
 // Debug
 bool ShowRemainingPellets = false;
@@ -312,10 +314,10 @@ private:
 	private:
 		int GhostBoard[MH][MW];
 
-		GhostState state;
 		bin_int phase;
-		DIR face;
 	public:
+		DIR face;
+		GhostState state;
 		double _PhaseTS;
 		int X, Y;
 		int tX, tY;
@@ -336,7 +338,11 @@ private:
 			X = 216.0; Y = 224.0;
 			tX = pX; tY = pY;
 			speed = .4;
-			state = CHASE; face = RIGHT;
+			state = CHASE;
+			if (newGame)
+				face = LEFT;
+			else
+				face = RIGHT;
 			_PhaseTS = GetTime();
 			phase = 0;
 		}
@@ -344,7 +350,11 @@ private:
 			CopyBoardData(Arr, GhostBoard);
 			X = 216.0; Y = 224.0;
 			tX = pX; tY = pY;
-			state = CHASE; face = RIGHT;
+			state = CHASE;
+			if (newGame)
+				face = LEFT;
+			else
+				face = RIGHT;
 			_PhaseTS = GetTime();
 			phase = 0;
 			speed = .4;
@@ -354,10 +364,10 @@ private:
 	private:
 		int GhostBoard[MH][MW];
 
-		GhostState state;
 		bin_int phase;
-		DIR face;
 	public:
+		DIR face;
+		GhostState state;
 		double _PhaseTS;
 		int X, Y;
 		int tX, tY;
@@ -378,7 +388,11 @@ private:
 			X = 216.0; Y = 224.0;
 			tX = pX; tY = pY;
 			speed = .4;
-			state = CHASE; face = RIGHT;
+			state = CHASE;
+			if (newGame)
+				face = LEFT;
+			else
+				face = RIGHT;
 			_PhaseTS = GetTime();
 			phase = 0;
 		}
@@ -386,7 +400,11 @@ private:
 			CopyBoardData(Arr, GhostBoard);
 			X = 216.0; Y = 224.0;
 			tX = pX; tY = pY;
-			state = CHASE; face = RIGHT;
+			state = CHASE;
+			if (newGame)
+				face = LEFT;
+			else
+				face = RIGHT;
 			_PhaseTS = GetTime();
 			phase = 0;
 			speed = .4;
@@ -399,6 +417,7 @@ private:
 	void DrawBoard();
 	void Toggle1UP();
 	void TogglePP();
+	void ToggleModes();
 	int GetTileID(int gridx, int gridy) const;
 	void DrawLives();
 	void DrawLevelDisplay();
@@ -409,11 +428,15 @@ private:
 	void CheckDotData();
 	void GameOver();
 	void InitializeColBoard();
+	void TurnAround();
 	bool GetCol(int x, int y, int ID) const;
 
 	Player P1;
 	G1* Blinky = new G1(Board);
 	G2* Pinky = new G2(Board);
+
+	bool S[8] = { 1,1,1,1,1,1,1,1 };
+
 public:
 	void InitializeBoard(int data[MH][MW]);
 	void Draw();
@@ -426,7 +449,7 @@ public:
 	GameState StateOfGame;
 	int score;
 	int collected_dots;
-	double _1UP_TS, _PP_TS; // Time stamps
+	double _1UP_TS, _PP_TS, _SWAP_TS; // Time stamps
 	int PlayerLives;
 	b_int PlayerLevel;
 };
