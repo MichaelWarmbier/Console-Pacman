@@ -9,6 +9,10 @@ using namespace chrono;
 bool EXIT_GAME_F = false;
 bool EXIT_PROGRAM_F = false;
 
+bool newGame = true;
+
+double BDfP = 0;
+
 HDC console = GetDC(GetConsoleWindow());
 HDC hdc = CreateCompatibleDC(NULL);
 HBITMAP bmap = (HBITMAP)LoadImage(NULL, _T("ConsolePacmanSpriteSheet.bmp"), IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
@@ -17,10 +21,16 @@ typedef unsigned char b_int;
 typedef bool bin_int;
 
 const int MH = 36, MW = 28;
+int pX, pY; // Player Position
+
+
+// Debug
+bool ShowRemainingPellets = false;
+bool CanGameOver = true;
+// Debug
 
 enum DIR { UP, DOWN, LEFT, RIGHT, NONE };
-enum GameState { LIMBO, BEFORE, DURING, AFTER };
-enum GhostType { BLINKY, INKY, PINKY, CLYDE};
+enum GameState { END, BEFORE, DURING, AFTER};
 enum GhostState { CHASE, SCATTER, PANIC, EATEN, INTRO };
 
 DIR PlayerInput = NONE;
@@ -210,6 +220,23 @@ const b_int SpriteIDs[256][2]{
 	  224, 112, // Clyde L P1 // 168
 	  240, 112, // Clyde L P2 // 169
 
+	  112, 224, // Blinky X // 170
+      128, 224, // Inky X // 171
+	  144, 224, // Pinky X // 172
+	  160, 224, // Clyde X // 173
+
+	  224, 128, // Pacman Death P1 // 174
+	  240, 128, // Pacman Death P2 // 175
+	  0, 144, // Pacman Death P3 // 176
+	  16, 144, // Pacman Death P4 // 177
+   	  32, 144, // Pacman Death P5 // 178
+      64, 144, // Pacman Death P6 // 179
+	  80, 144, // Pacman Death P7 // 180
+	  96, 144, // Pacman Death P8 // 181
+	  112, 144, // Pacman Death P9 // 182
+	  128, 144, // Pacman Death P10 // 183
+	  144, 144, // Pacman Death P11 // 184
+
 };
 
 void UpdateTS(double& timestamp);
@@ -221,63 +248,11 @@ double GetTime();
 double Wait(double waitTime);
 void SetWindowDimensions(int x, int y);
 double GetDistanceOf(int x1, int y1, int x2, int y2);
+void CopyBoardData(int Arr1[MH][MW], int Arr2[MW][MW]);
+void InitializeBoardData(int Arr[MH][MW]);
 
 class Game { // Game Class
-private:
-
-	class Player { // Player Class
-	private:
-
-		int SpritePhase; // Marker for current phase
-
-	public:
-
-		double _PhaseTS; // Timestamp for checking when to increment player phase
-		int X, Y; // Pixel positions
-		double speed; // Movement speed
-
-		Player(); // Constructor
-
-		void Draw() const; // Function to draw player
-		void TogglePhase(); // Toggles player visuals
-
-	};
-
-	class Ghost { // Blinky / Shadow [Red]
-	private:
-
-		GhostState state;
-		GhostType type;
-		bin_int phase;
-		DIR face;
-
-	public:
-		
-		double _PhaseTS;
-		int X, Y;
-		int tX, tY;
-
-		// Draw Functions
-		void B_Draw();
-
-		// Logic Functions
-		void B_Logic();
-
-		// Shared Functions
-		void Advance();
-		void TogglePhase();
-		void FindPath();
-
-		Ghost();
-		Ghost(GhostType name) : type(name) {
-			X = 216.0; Y = 224.0;
-			tX = 0; tY = 0;
-			state = CHASE; face = RIGHT;
-			_PhaseTS = GetTime();
-			phase = 0;
-		};
-	};
-
+public:
 	int CollisionBoard[MH * 16][MW * 16];
 	int Board[MH][MW] = {
 		01,01,01,03,32,27,01,01,01,19,20,18,19,01,30,14,26,29,16,01,01,01,01,01,01,01,01,01,
@@ -317,11 +292,110 @@ private:
 		01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,01,
 		01,01,01,01,01,01,01,01,01,01,01,01,01,01,00,00,00,00,00,00,00,00,00,00,00,00,00,00,
 	};
+private:
+	class Player { // Player Class
+		friend class G1;
+		friend class G2;
+	private:
+		int SpritePhase; // Marker for current phase
+	public:
+		double _PhaseTS; // Timestamp for checking when to increment player phase
+		double speed; // Movement speed
 
-	GameState StateOfGame;
+		Player(); // Constructor
 
-	void TeleportPacman();
-	void ChangeTile(int grix, int gridy, int newTileID);
+		void Draw() const; // Function to draw player
+		void TogglePhase(); // Toggles player visuals
+	};
+
+	class G1 {
+	private:
+		int GhostBoard[MH][MW];
+
+		GhostState state;
+		bin_int phase;
+		DIR face;
+	public:
+		double _PhaseTS;
+		int X, Y;
+		int tX, tY;
+		double speed;
+
+		void Draw();
+		void Logic();
+		void AI();
+
+		void Advance();
+		void TogglePhase();
+		bool CheckTile(int x, int y);
+		void FindPath();
+		void Teleport();
+
+		G1() {
+			InitializeBoardData(GhostBoard);
+			X = 216.0; Y = 224.0;
+			tX = pX; tY = pY;
+			speed = .4;
+			state = CHASE; face = RIGHT;
+			_PhaseTS = GetTime();
+			phase = 0;
+		}
+		G1(int Arr[MH][MW]) {
+			CopyBoardData(Arr, GhostBoard);
+			X = 216.0; Y = 224.0;
+			tX = pX; tY = pY;
+			state = CHASE; face = RIGHT;
+			_PhaseTS = GetTime();
+			phase = 0;
+			speed = .4;
+		};
+	};
+	class G2 {
+	private:
+		int GhostBoard[MH][MW];
+
+		GhostState state;
+		bin_int phase;
+		DIR face;
+	public:
+		double _PhaseTS;
+		int X, Y;
+		int tX, tY;
+		double speed;
+
+		void Draw();
+		void Logic();
+		void AI();
+
+		void Advance();
+		void TogglePhase();
+		bool CheckTile(int x, int y);
+		void FindPath();
+		void Teleport();
+
+		G2() {
+			InitializeBoardData(GhostBoard);
+			X = 216.0; Y = 224.0;
+			tX = pX; tY = pY;
+			speed = .4;
+			state = CHASE; face = RIGHT;
+			_PhaseTS = GetTime();
+			phase = 0;
+		}
+		G2(int Arr[MH][MW]) {
+			CopyBoardData(Arr, GhostBoard);
+			X = 216.0; Y = 224.0;
+			tX = pX; tY = pY;
+			state = CHASE; face = RIGHT;
+			_PhaseTS = GetTime();
+			phase = 0;
+			speed = .4;
+		};
+	};
+
+
+	void Teleport();
+	void ChangeTile(int gridx, int gridy, int newTileID);
 	void DrawBoard();
 	void Toggle1UP();
 	void TogglePP();
@@ -333,25 +407,26 @@ private:
 	void ToggleMapColor();
 	void ToggleReady();
 	void CheckDotData();
+	void GameOver();
 	void InitializeColBoard();
 	bool GetCol(int x, int y, int ID) const;
 
-	Ghost Blinky;
 	Player P1;
-
+	G1* Blinky = new G1(Board);
+	G2* Pinky = new G2(Board);
 public:
-
+	void InitializeBoard(int data[MH][MW]);
 	void Draw();
 	void Logic();
 	void Input();
 
 	Game();
-	Game(int level);
+	Game(int level, int lives);
 
+	GameState StateOfGame;
 	int score;
 	int collected_dots;
 	double _1UP_TS, _PP_TS; // Time stamps
 	int PlayerLives;
 	b_int PlayerLevel;
 };
-
