@@ -301,6 +301,7 @@ private:
 	private:
 		int SpritePhase; // Marker for current phase
 	public:
+		bool MayUpdate = false;
 		double _PhaseTS; // Timestamp for checking when to increment player phase
 		double speed; // Movement speed
 
