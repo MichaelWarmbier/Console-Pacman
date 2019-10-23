@@ -5,6 +5,7 @@ int main() {
 	int carried_level = 1, carried_lives = 3;
 	int carried_board_data[MH][MW];
 	do {
+		COORD coord; coord.X = 0; coord.Y = 0;
 		Game* Pacman = new Game(carried_level, carried_lives);
 		Pacman->InitializeBoard(carried_board_data);
 		newGame = false;
@@ -158,6 +159,25 @@ void Game::Logic() {
 			UpdateTS(_PP_TS);
 		}
 		if (GetTimeSince(P1._PhaseTS) > .08) {
+			P1.MayUpdate = true;
+			switch (PlayerInput) {
+			case UP:
+				if (GetCol(pX, pY - 16, 1))
+					P1.MayUpdate = false;
+				break;
+			case RIGHT:
+				if (GetCol(pX + 16, pY, 1))
+					P1.MayUpdate = false;
+				break;
+			case LEFT:
+				if (GetCol(pX - 16, pY, 1))
+					P1.MayUpdate = false;
+				break;
+			case DOWN:
+				if (GetCol(pX, pY + 16, 1))
+					P1.MayUpdate = false;
+				break;
+		}
 			P1.TogglePhase();
 			UpdateTS(P1._PhaseTS);
 		}
@@ -459,8 +479,9 @@ void Game::CheckDotData() {
 	collected_dots = 0;
 	for (int y = 0; y < MH; y++) {
 		for (int x = 0; x < MW; x++) {
-			if (GetTileID(x, y) == 79 || GetTileID(x, y) == 78 || GetTileID(x, y) == 97)
+			if (GetTileID(x, y) == 79 || GetTileID(x, y) == 78 || GetTileID(x, y) == 97) {
 				collected_dots++;
+			}
 		}
 	}
 }
@@ -561,7 +582,8 @@ Game::Player::Player() {
 }
 
 void Game::Player::TogglePhase() {
-	SpritePhase++;
+	if (MayUpdate)
+		SpritePhase++;
 	if (SpritePhase > 3)
 		SpritePhase = 1;
 }
