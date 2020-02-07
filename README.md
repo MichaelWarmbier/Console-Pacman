@@ -2,7 +2,7 @@
 
 ### Pacman entirely redesigned using C++. 
 
-Being developed by Michael Warmbier & Sam Montanaro.
+Being developed by Michael Warmbier and support by Sam Montanaro.
 
 Pacman is the original maze-chase arcade game developed by Bandai Namco and released on May 22, 1980.
 
