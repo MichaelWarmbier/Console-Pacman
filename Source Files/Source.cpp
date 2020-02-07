@@ -1,6 +1,7 @@
 #include "Main.h"
 #include "Game.h"
 #include "TitleScreen.h"
+#include "Pac.h"
 
 int SpriteData[500][2]{
 	// X, Y //
@@ -291,137 +292,185 @@ int SpriteData[500][2]{
 	  1, 10, //		278 // [W] Alt Thin Corner Top Right
 	  2, 10, //		279 // [W] Alt Thin Corner Bottom Left
 	  3, 10, //		280 // [W] Alt Thin Corner Bottom Right
-	 11, 10, //		281 // [W] Power Pellet
-	 12, 10, //		282 // [W] Star
-	 13, 10, //		283 // [W] Energizer
+	  8, 10, //		281 // [W] Alt Thick Fork Wall R1
+	  9, 10, //		282 // [W] Alt Thick Fork Wall R2
+	 11, 10, //		283 // [W] Power Pellet
+	 12, 10, //		284 // [W] Star
+	 13, 10, //		285 // [W] Energizer
 	  // Wall Tileset BLUE //
-	 14, 10, //		284 // [B] Thick Top Right Corner
-	 15, 10, //		285 // [B] Thick Top Left Corner
-	 16, 10, //		286 // [B] Thick Left Wall
-	 17, 10, //		287 // [B] Thick Right Wall
-	 18, 10, //		288 // [B] Thick Bottom Right Corner
-	 19, 10, //		289 // [B] Thick Bottom Left Corner
-	 20, 10, //		290 // [B] Thick Fork Wall R1
-	 21, 10, //		291 // [B] Thick Fork Wall R2
-	 22, 10, //		292 // [B] Thick Fork Wall R3
-	 23, 10, //		293 // [B] Thick Fork Wall R4
-	 24, 10, //		294 // [B] Thick Top Wall
-	 25, 10, //		295 // [B] Thick Bottom Wall
-	 26, 10, //		296 // [B] Thin Top Wall
-	 27, 10, //		297 // [B] Long Thin Corner Bottom Right
-	 28, 10, //		298 // [B] Long Thin Corner Bottom Left
-	 29, 10, //		299 // [B] Long Thin Corner Top Right
-	  0, 11, //		300 // [B] Long Thin Corner Top Left
-	  1, 11, //		301 // [B] Thin Bottom Wall
-	  2, 11, //		302 // [B] Thin Corner Top Right
-	  3, 11, //		303 // [B] Thin Corner Top Left
-	  4, 11, //		304 // [B] Thin Left Wall
-	  5, 11, //		305 // [B] Thin Right Wall
-	  6, 11, //		306 // [B] Thin Corner Bottom Right
-	  7, 11, //		307 // [B] Thin Corner Bottom Left
-	  8, 11, //		308 // [B] Box Top Right Corner
-	  9, 11, //		309 // [B] Box Top Left Corner
-	 10, 11, //		310 // [B] Box Bottom Right Corner
-	 11, 11, //		311 // [B] Box Bottom Left Corner
-	 12, 11, //		312 // [B] Gate End Right
-	 13, 11, //		313 // [B] Gate End Left
-	 14, 11, //		314 // [B] Alt Thin Corner Top Left
-	 15, 11, //		315 // [B] Alt Thin Corner Top Right
-	 16, 11, //		316 // [B] Alt Thin Corner Bottom Left
-	 17, 11, //		317 // [B] Alt Thin Corner Bottom Right
-	 25, 11, //		318 // [B] Power Pellet
-	 26, 11, //		319 // [B] Star
-	 27, 11, //		320 // [B] Energizer
+	 14, 10, //		286 // [B] Thick Top Right Corner
+	 15, 10, //		287 // [B] Thick Top Left Corner
+	 16, 10, //		288 // [B] Thick Right Wall
+	 17, 10, //		289 // [B] Thick Left Wall
+	 18, 10, //		290 // [B] Thick Bottom Right Corner
+	 19, 10, //		291 // [B] Thick Bottom Left Corner
+	 20, 10, //		292 // [B] Thick Fork Wall R1
+	 21, 10, //		293 // [B] Thick Fork Wall R2
+	 22, 10, //		294 // [B] Thick Fork Wall R3
+	 23, 10, //		295 // [B] Thick Fork Wall R4
+	 24, 10, //		296 // [B] Thick Top Wall
+	 25, 10, //		297 // [B] Thick Bottom Wall
+	 26, 10, //		298 // [B] Thin Top Wall
+	 27, 10, //		299 // [B] Long Thin Corner Bottom Right
+	 28, 10, //		300 // [B] Long Thin Corner Bottom Left
+	 29, 10, //		301 // [B] Long Thin Corner Top Right
+	  0, 11, //		302 // [B] Long Thin Corner Top Left
+	  1, 11, //		303 // [B] Thin Bottom Wall
+	  2, 11, //		304 // [B] Thin Corner Top Right
+	  3, 11, //		305 // [B] Thin Corner Top Left
+	  4, 11, //		306 // [B] Thin Left Wall
+	  5, 11, //		307 // [B] Thin Right Wall
+	  6, 11, //		308 // [B] Thin Corner Bottom Right
+	  7, 11, //		309 // [B] Thin Corner Bottom Left
+	  8, 11, //		310 // [B] Box Top Right Corner
+	  9, 11, //		311 // [B] Box Top Left Corner
+	 10, 11, //		312 // [B] Box Bottom Right Corner
+	 11, 11, //		313 // [B] Box Bottom Left Corner
+	 12, 11, //		314 // [B] Gate End Right
+	 13, 11, //		315 // [B] Gate End Left
+	 14, 11, //		316 // [B] Alt Thin Corner Top Left
+	 15, 11, //		317 // [B] Alt Thin Corner Top Right
+	 16, 11, //		318 // [B] Alt Thin Corner Bottom Left
+	 17, 11, //		319 // [B] Alt Thin Corner Bottom Right
+	 22, 11, //		320 // [B] Alt Thick Fork Wall R1
+	 23, 11, //		321 // [B] Alt Thick Fork Wall R2
+	 25, 11, //		322 // [B] Power Pellet
+	 26, 11, //		323 // [B] Star
+	 27, 11, //		324 // [B] Energizer
 	  // Points //
-	  0, 18, //		321 // 200
-	  2, 18, //		322 // 400
-	  3, 18, //		323 // 800
-	  4, 18, //		324 // 1600
-	  5, 18, //		325 // 100
-	  6, 18, //		326 // 300
-	  7, 18, //		327 // 500
-	  8, 18, //		328 // 700
-	  9, 18, //		329 // 1000
+	  0, 18, //		325 // 200
+	  2, 18, //		326 // 400
+	  3, 18, //		327 // 800
+	  4, 18, //		328 // 1600
+	  5, 18, //		329 // 100
+	  6, 18, //		330 // 300
+	  7, 18, //		331 // 500
+	  8, 18, //		332 // 700
+	  9, 18, //		333 // 1000
 	  // Pacman //
-	  2, 20, //		330 // P1
-	  0, 20, //		331 // P3 Right
-	  1, 20, //		332 // P2 Right
-	  0, 21, //		333 // P3 Left
-	  1, 21, //		334 // P2 Left
-	  0, 22, //		335 // P3 Up
-	  1, 22, //		336 // P2 Up
-	  0, 23, //		337 // P3 Down
-	  1, 23, //		338 // P2 Down
-	  3, 20, //		339 // Death 1
-	  4, 20, //		340 // Death 2
-	  5, 20, //		341 // Death 3
-	  6, 20, //		342 // Death 4
-	  7, 20, //		343 // Death 5
-	  8, 20, //		344 // Death 6
-	  9, 20, //		345 // Death 7
-	 10, 20, //		346 // Death 8
-	 11, 20, //		347 // Death 9
-	 12, 20, //		348 // Death 10
+	  2, 20, //		334 // P1
+	  0, 20, //		335 // P3 Right
+	  1, 20, //		336 // P2 Right
+	  0, 21, //		337 // P3 Left
+	  1, 21, //		338 // P2 Left
+	  0, 22, //		339 // P3 Up
+	  1, 22, //		340 // P2 Up
+	  0, 23, //		341 // P3 Down
+	  1, 23, //		342 // P2 Down
+	  3, 20, //		343 // Death 1
+	  4, 20, //		344 // Death 2
+	  5, 20, //		345 // Death 3
+	  6, 20, //		346 // Death 4
+	  7, 20, //		347 // Death 5
+	  8, 20, //		348 // Death 6
+	  9, 20, //		349 // Death 7
+	 10, 20, //		350 // Death 8
+	 11, 20, //		351 // Death 9
+	 12, 20, //		352 // Death 10
 	  // Fruit [Active] //
-	  2, 23, //		349 // Cherry
-	  3, 23, //		350 // Strawberry
-	  4, 23, //		351 // Orange
-	  5, 23, //		352 // Apple
-	  6, 23, //		353 // Melon
-	  7, 23, //		354 // Spaceship
-	  8, 23, //		355 // Bell
-	  9, 23, //		356 // Key
+	  2, 23, //		353 // Cherry
+	  3, 23, //		354 // Strawberry
+	  4, 23, //		355 // Orange
+	  5, 23, //		356 // Apple
+	  6, 23, //		357 // Melon
+	  7, 23, //		358 // Spaceship
+	  8, 23, //		359 // Bell
+	  9, 23, //		360 // Key
 	  // Ghosts //
-	  8, 24, //	357 // Scared Blue 1
-	  9, 24, //	358 // Scared Blue 2
-	 10, 24, //	359 // Scared White 1
-	 11, 24, //	360 // Scared White 2
-	  8, 25, //	361 // Eyes Right
-	  9, 25, //	362 // Eye Left
-	 10, 25, //	363 // Eyes Up
-	 11, 25, //	364 // Eyes Down
-	  0, 24, //	365 // Blinky R1
-	  1, 24, //	366 // Blinky R2
-	  2, 24, //	367 // Blinky L1
-	  3, 24, //	368 // Blinky L2
-	  4, 24, //	369 // Blinky U1
-	  5, 24, //	370 // Blinky U2
-	  6, 24, //	371 // Blinky D1
-	  7, 24, //	372 // Blinky D2
-	  0, 25, //	373 // Pinky R1
-	  1, 25, //	374 // Pinky R2
-	  2, 25, //	375 // Pinky L1
-	  3, 25, //	376 // Pinky L2
-	  4, 25, //	377 // Pinky U1
-	  5, 25, //	378 // Pinky U2
-	  6, 25, //	379 // Pinky D1
-	  7, 25, //	380 // Pinky D2
-	  0, 26, //	381 // Inky R1
-	  1, 26, //	382 // Inky R2
-	  2, 26, //	383 // Inky L1
-	  3, 26, //	384 // Inky L2
-	  4, 26, //	385 // Inky U1
-	  5, 26, //	386 // Inky U2
-	  6, 26, //	387 // Inky D1
-	  7, 26, //	388 // Inky D2
-      0, 27, //	390 // Clyde R1
-	  1, 27, //	391 // Clyde R2
-	  2, 27, //	392 // Clyde L1
-	  3, 27, //	393 // Clyde L2
-	  4, 27, //	394 // Clyde U1
-	  5, 27, //	395 // Clyde U2
-	  6, 27, //	396 // Clyde D1
-	  7, 27, //	397 // Clyde D2
+	  8, 24, //		361 // Scared Blue 1
+	  9, 24, //		362 // Scared Blue 2
+	 10, 24, //		363 // Scared White 1
+	 11, 24, //		364 // Scared White 2
+	  8, 25, //		365 // Eyes Right
+	  9, 25, //		366 // Eye Left
+	 10, 25, //		367 // Eyes Up
+	 11, 25, //		368 // Eyes Down
+	  0, 24, //		369 // Blinky R1
+	  1, 24, //		370 // Blinky R2
+	  2, 24, //		371 // Blinky L1
+	  3, 24, //		372 // Blinky L2
+	  4, 24, //		373 // Blinky U1
+	  5, 24, //		374 // Blinky U2
+	  6, 24, //		375 // Blinky D1
+	  7, 24, //		376 // Blinky D2
+	  0, 25, //		377 // Pinky R1
+	  1, 25, //		378 // Pinky R2
+	  2, 25, //		379 // Pinky L1
+	  3, 25, //		380 // Pinky L2
+	  4, 25, //		381 // Pinky U1
+	  5, 25, //		382 // Pinky U2
+	  6, 25, //		383 // Pinky D1
+	  7, 25, //		384 // Pinky D2
+	  0, 26, //		385 // Inky R1
+	  1, 26, //		386 // Inky R2
+	  2, 26, //		387 // Inky L1
+	  3, 26, //		388 // Inky L2
+	  4, 26, //		389 // Inky U1
+	  5, 26, //		390 // Inky U2
+	  6, 26, //		391 // Inky D1
+	  7, 26, //		392 // Inky D2
+      0, 27, //		393 // Clyde R1
+	  1, 27, //		394 // Clyde R2
+	  2, 27, //		395 // Clyde L1
+	  3, 27, //		396 // Clyde L2
+	  4, 27, //		397 // Clyde U1
+	  5, 27, //		398 // Clyde U2
+	  6, 27, //		399 // Clyde D1
+	  7, 27, //		400 // Clyde D2
+	  // Misc //
+	 28, 11, //		401 // Gate
+	 14,  7, //		402 // Empty
+	 12, 12, //		403 // Pacman Live Top Left
+	 13, 12, //		404 // Pacman Live Top Right
+	 12, 13, //		405 // Pacman Live Bottom Left
+	 13, 13, //		406 // Pacman Live Bottom Right
+	  // Fruit [Inactive] //
+	  0, 16, //		407 // Cherry Top Left
+	  1, 16, //		408 // Cherry Top Right
+	  0, 17, //		409 // Cherry Bottom Left
+	  1, 17, //		410 // Cherry Bottom Right
+	  2, 16, //		411 // Strawberry Top Left
+	  3, 16, //		412 // Strawberry Top Right
+	  2, 17, //		413 // Strawberry Bottom Left
+	  3, 17, //		414 // Strawberry Bottom Right
+	  4, 16, //		415 // Orange Top Left
+	  5, 16, //		416 // Orange Top Right
+	  4, 17, //		417 // Orange Bottom Left
+	  5, 17, //		418 // Orange Bottom Right
+	  6, 16, //		419 // Apple Top Left
+	  7, 16, //		420 // Apple Top Right
+	  6, 17, //		421 // Apple Bottom Left
+	  7, 17, //		422 // Apple Bottom Right
+	  8, 16, //		423 // Melon Top Left
+	  9, 16, //		424 // Melon Top Right
+	  8, 17, //		425 // Melon Bottom Left
+	  9, 17, //		426 // Melon Bottom Right
+	 10, 16, //		427 // Spaceship Top Left
+	 11, 16, //		428 // Spaceship Top Right
+	 10, 17, //		429 // Spaceship Bottom Left
+	 11, 17, //		430 // Spaceship Bottom Right
+	 12, 16, //		431 // Bell Top Left
+	 13, 16, //		432 // Bell Top Right
+	 12, 17, //		433 // Bell Bottom Left
+	 13, 17, //		434 // Bell Bottom Right
+	 14, 16, //		435 // Key Top Left
+	 15, 16, //		436 // Key Top Right
+	 14, 17, //		437 // Key Bottom Left
+	 15, 17, //		438 // Key Bottom Right
 
 
 };
 
 int main() {
+	SetConsoleTitle("Console Pacman");
 	Main* Program = new Main;
+	Program->SetWindowDimensions(29, 39);
 	while (!Program->ProgramStatus()) {
 		Game* Pacman = new Game;
 		while (!Pacman->GameStatus()) {
-			Pacman->DrawBoard();
+			Pacman->Draw();
+			Pacman->Input();
+			Pacman->Logic();
 		}
 		Program->ExitProgram();
 	}
