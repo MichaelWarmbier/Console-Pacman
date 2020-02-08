@@ -38,7 +38,7 @@ bool Pac::UpdateMovement() {
 	return false;
 }
 
-int Pac::CollisionCheck(dir DIR) const {
+bool Pac::CollisionCheck(dir DIR) const {
 	switch (DIR) {
 	case LEFT:
 		if (BoardCollision[Y][X - 1] == 1 || BoardCollision[Y + 15][X - 1] == 1)
@@ -59,3 +59,22 @@ int Pac::CollisionCheck(dir DIR) const {
 	}
 	return false;
 }
+
+int Pac::ActiveTileCheck(dir DIR) const {
+	switch (DIR) {
+	case LEFT:
+		return BoardCollision[Y + 7][X + 7];
+		break;
+	case RIGHT:
+		return BoardCollision[Y + 7][X + 8];
+		break;
+	case UP:
+		return BoardCollision[Y + 7][X + 7];
+		break;
+	case DOWN:
+		return BoardCollision[Y + 8][X + 7];
+		break;
+	}
+	return false;
+}
+
