@@ -457,22 +457,33 @@ int SpriteData[500][2]{
 	 15, 16, //		436 // Key Top Right
 	 14, 17, //		437 // Key Bottom Left
 	 15, 17, //		438 // Key Bottom Right
+	  // Misc 2 //
+	 14,  7, //		439 // Empty MINI
+	 13, 20, //		440 // ...
 
 
 };
 
 int main() {
+	int StoredLevel = 1, StoredLives = 3, StoredScore = 0;
 	SetConsoleTitle("Console Pacman");
 	Main* Program = new Main;
 	Program->SetWindowDimensions(29, 39);
 	while (!Program->ProgramStatus()) {
-		Game* Pacman = new Game;
-		while (!Pacman->GameStatus()) {
+		Game* Pacman = new Game(StoredLevel, StoredLives, StoredScore);
+		do {
 			Pacman->Draw();
 			Pacman->Input();
 			Pacman->Logic();
-		}
-		Program->ExitProgram();
+			while (GetConsoleWindow() != GetForegroundWindow()) {}
+		} while (!Pacman->GameStatus());
+		if (!Pacman->Death)
+			StoredLevel = ++Pacman->Level;
+		else
+			StoredLevel = Pacman->Level;
+		StoredLives = Pacman->Lives, StoredScore = Pacman->Score;
+		delete Pacman;
+		system("CLS");
 	}
 	delete Program;
 	return EXIT_SUCCESS;
@@ -480,7 +491,10 @@ int main() {
 
 bool DrawSprite(int xpos, int ypos, int ID) {
 	SelectObject(hdc, bmap);
-	BitBlt(console, xpos, ypos, res, res, hdc, SpriteData[ID - 1][0] * res, SpriteData[ID - 1][1] * res, SRCCOPY);
+	if (ID == 322 || ID == 439)
+		BitBlt(console, xpos + 6, ypos + 6, 4, 4, hdc, SpriteData[ID - 1][0] * res + 6, SpriteData[ID - 1][1] * res +  6, SRCCOPY);
+	else
+		BitBlt(console, xpos, ypos, res, res, hdc, SpriteData[ID - 1][0] * res, SpriteData[ID - 1][1] * res, SRCCOPY);
 	DeleteObject(bmap);
 	return true;
 }
