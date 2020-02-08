@@ -22,9 +22,15 @@ bool Game::GameStatus() const {
 }
 
 void Game::Draw() {
-	DrawBoard();
-	DrawCounter(0, 1, Score); // Score
-	DrawCounter(10, 1, HighScore); // Highscore
+	DrawBoard(); // Main Map Drawing Function
+	DrawCounter(0, 1, Score); // Score Display
+	DrawCounter(10, 1, HighScore); // Highscore Display
+	DrawLives(); // Lives Display
+	Player.DrawPlayer();
+	if (DisplayFPS) // Debug
+		DrawCounter(2, 2, GetFPS());
+	if (!GameStarted)
+		GetReady();
 }
 void Game::Input() {
 	if (KeyIsDown('W', true, true) && !Player.CollisionCheck(UP))
@@ -35,13 +41,23 @@ void Game::Input() {
 		Player.Face = DOWN;
 	if (KeyIsDown('D', true, true) && !Player.CollisionCheck(RIGHT))
 		Player.Face = RIGHT;
+	if (KeyIsDown('1', true, false) && InstaEnd) // Debug
+		DotsCollected = 244;
+	if (KeyIsDown('2', true, false) && InstaLive) // Debug
+		Lives++;
+	if (KeyIsDown('3', true, false) && InstaDeath) // Debug
+		KillPlayer();
 }
 void Game::Logic() {
 	UpdateTS(EnergizerFlashActive, EnergizerFlashTS, .2);
 	UpdateTS(_1UPFlashActive, _1UPFlashTS, .4);
 	Player.UpdatePhase();
-	Player.DrawPlayer();
 	MovePacman();
+	TeleportPlayer();
+	EatObjects();
+	LevelEnd();
+	if (HighScore < Score)
+		HighScore = Score;
 }
 bool Game::UpdateTS(bool & State, double & TS, double Time) {
 	if (GetTimeSince(TS) > Time) {
@@ -75,10 +91,10 @@ int Game::NumberToSprite(int value) const {
 	return value + 234;
 }
 
-void Game::DrawLives(int L) {
-	if (L > 5)
-		L = 5;
-	for (int i = 0; i < L; i++) {
+void Game::DrawLives() {
+	if (Lives > 5)
+		Lives = 5;
+	for (int i = 0; i < Lives; i++) {
 		if (i == 0)
 			continue;
 		SetTile(0 + (i * 2), 34, 403);
@@ -88,17 +104,17 @@ void Game::DrawLives(int L) {
 	}
 }
 
-void Game::DrawLevel(int L) {
+void Game::DrawLevel() {
 	int R[2] = { 0,0 };
-	if (L < 8) {
+	if (Level < 8) {
 		R[0] = 1;
-		R[1] = L;
+		R[1] = Level;
 	}
-	else if (L > 7 && L < 19) {
-		R[0] = L - 6;
-		R[1] = L;
+	else if (Level > 7 && Level < 19) {
+		R[0] = Level - 6;
+		R[1] = Level;
 	}
-	else if (L > 18) {
+	else if (Level > 18) {
 		R[0] = 13;
 		R[1] = 19;
 	}
@@ -147,7 +163,15 @@ void Game::MovePacman() {
 void Game::InitializeCollision() {
 	for (int y = 0; y < BH; y++) {
 		for (int x = 0; x < BW; x++) {
-			if (Board[y][x] >= 247 && Board[y][x] <= 321)
+			if (Board[y][x] == 322)
+			for (int i = y * 16; i < y * 16 + 16; i++)
+				for (int j = x * 16; j < x * 16 + 16; j++)
+					Player.BoardCollision[i][j] = 2;
+			else if (Board[y][x] == 324)
+				for (int i = y * 16; i < y * 16 + 16; i++)
+					for (int j = x * 16; j < x * 16 + 16; j++)
+						Player.BoardCollision[i][j] = 3;
+			else if (Board[y][x] >= 247 && Board[y][x] <= 321)
 				for (int i = y * 16; i < y *  16 + 16; i++)
 					for (int j = x * 16; j < x * 16 +16; j++)
 						Player.BoardCollision[i][j] = 1;
@@ -157,4 +181,165 @@ void Game::InitializeCollision() {
 						Player.BoardCollision[i][j] = 0;
 		}
 	}
+}
+
+void Game::TeleportPlayer() {
+	if (Player.Y == 272) {
+		if (Player.X == 430) {
+			DrawSprite(Player.X, Player.Y, 402);
+			Player.X = 4;
+		}
+		else if (Player.X == 2) {
+			DrawSprite(Player.X, Player.Y, 402);
+			Player.X = 428;
+		}
+	}
+}
+
+void Game::EatObjects() {
+	switch (Player.Face) {
+	case LEFT:
+		if (Player.ActiveTileCheck(LEFT) == 2) {
+			ClearCollisionTile(Player.X / 16, Player.Y / 16);
+			SetTile(Player.X / 16, Player.Y / 16, 000);
+			DrawSprite((Player.X / 16) * 16, Player.Y, 439);
+			DotsCollected++;
+			Score += 10;
+		}
+		else if (Player.ActiveTileCheck(LEFT) == 3) {
+			ClearCollisionTile(Player.X / 16, Player.Y / 16);
+			SetTile(Player.X / 16, Player.Y / 16, 000);
+			DrawSprite((Player.X / 16) * 16, Player.Y, 402);
+			DotsCollected++;
+			Score += 50;
+		}
+		break;
+	case RIGHT:
+		if (Player.ActiveTileCheck(RIGHT) == 2) {
+			ClearCollisionTile(Player.X / 16 + 1, Player.Y / 16);
+			SetTile(Player.X / 16 + 1, Player.Y / 16, 000);
+			DrawSprite(((Player.X / 16) + 1) * 16, Player.Y, 439);
+			DotsCollected++;
+			Score += 10;
+		}
+		if (Player.ActiveTileCheck(RIGHT) == 3) {
+			ClearCollisionTile(Player.X / 16 + 1, Player.Y / 16);
+			SetTile(Player.X / 16 + 1, Player.Y / 16, 000);
+			DrawSprite(((Player.X / 16) + 1) * 16, Player.Y, 402);
+			DotsCollected++;
+			Score += 50;
+		}
+		break;
+	case UP:
+		if (Player.ActiveTileCheck(LEFT) == 2) {
+			ClearCollisionTile(Player.X / 16, Player.Y / 16);
+			SetTile(Player.X / 16, Player.Y / 16, 000);
+			DrawSprite(Player.X, (Player.Y / 16) * 16, 439);
+			DotsCollected++;
+			Score += 10;
+		}
+		if (Player.ActiveTileCheck(LEFT) == 3) {
+			ClearCollisionTile(Player.X / 16, Player.Y / 16);
+			SetTile(Player.X / 16, Player.Y / 16, 000);
+			DrawSprite(Player.X, (Player.Y / 16) * 16, 402);
+			DotsCollected++;
+			Score += 50;
+		}
+		break;
+	case DOWN:
+		if (Player.ActiveTileCheck(LEFT) == 2) {
+			ClearCollisionTile(Player.X / 16, Player.Y / 16 + 1);
+			SetTile(Player.X / 16, Player.Y / 16 + 1, 000);
+			DrawSprite(Player.X, ((Player.Y / 16) + 1) * 16, 439);
+			DotsCollected++;
+			Score += 10;
+		}
+		if (Player.ActiveTileCheck(LEFT) == 3) {
+			ClearCollisionTile(Player.X / 16, Player.Y / 16 + 1);
+			SetTile(Player.X / 16, Player.Y / 16 + 1, 000);
+			DrawSprite(Player.X, ((Player.Y / 16) + 1) * 16, 402);
+			DotsCollected++;
+			Score += 50;
+		}
+		break;
+	}
+}
+
+void  Game::ClearCollisionTile(int xpos, int ypos) {
+	for (int i = ypos * 16; i < ypos * 16 + 16; i++)
+		for (int j = xpos * 16; j < xpos * 16 + 16; j++)
+			Player.BoardCollision[i][j] = 0;
+}
+
+int Game::GetFPS() {
+	FPS++;
+	if (GetTimeSince(FPSTS) >= 1) {
+		LastFPS = FPS;
+		FPS = 0;
+		FPSTS = GetTime();
+	}
+	return LastFPS;
+}
+
+void Game::LevelEnd() {
+	if (DotsCollected == 244) {
+		Wait(2);
+		for (int i = 0; i < 8; i++) {
+			Wait(.15);
+			Flash();
+		}
+		EndGame = true;
+	}
+}
+
+void Game::Flash() {
+	if (Board[3][0] == 287) {
+		for (int y = 0; y < BH; y++) {
+			for (int x = 0; x < BW; x++) {
+				if (Board[y][x] >= 286 && Board[y][x] <= 321)
+					Board[y][x] -= 39;
+			}
+		}
+	}
+	else if (Board[3][0] == 248) {
+		for (int y = 0; y < BH; y++) {
+			for (int x = 0; x < BW; x++) {
+				if (Board[y][x] >= 247 && Board[y][x] <= 282)
+					Board[y][x] += 39;
+			}
+		}
+	}
+	DrawBoard();
+}
+
+void Game::KillPlayer() {
+	Wait(2);
+	DrawSprite(Player.X, Player.Y, 402);
+	for (int i = 343; i <= 352; i++) {
+		DrawSprite(Player.X, Player.Y, i);
+		Wait(.13);
+	}
+	DrawSprite(Player.X, Player.Y, 440);
+	Wait(.13);
+	DrawSprite(Player.X, Player.Y, 402);
+	Death = true;
+	Lives--;
+	EndGame = true;
+}
+
+void Game::GetReady() {
+	SetTile(11, 20, 182);
+	SetTile(12, 20, 169);
+	SetTile(13, 20, 165);
+	SetTile(14, 20, 168);
+	SetTile(15, 20, 189);
+	SetTile(16, 20, 191);
+	DrawBoard();
+	Wait(3.5);
+	DrawBoard();
+	for (int i = 0; i < 6; i++) {
+		SetTile(11 + i, 20, 000);
+		DrawSprite((11 + i) * 16, 320, 402);
+	}
+	GameStarted = true;
 }
