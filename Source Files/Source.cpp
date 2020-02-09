@@ -339,14 +339,14 @@ int SpriteData[500][2]{
 	 27, 11, //		324 // [B] Energizer
 	  // Points //
 	  0, 18, //		325 // 200
-	  2, 18, //		326 // 400
-	  3, 18, //		327 // 800
-	  4, 18, //		328 // 1600
-	  5, 18, //		329 // 100
-	  6, 18, //		330 // 300
-	  7, 18, //		331 // 500
-	  8, 18, //		332 // 700
-	  9, 18, //		333 // 1000
+	  1, 18, //		326 // 400
+	  2, 18, //		327 // 800
+	  3, 18, //		328 // 1600
+	  4, 18, //		329 // 100
+	  5, 18, //		330 // 300
+	  6, 18, //		331 // 500
+	  7, 18, //		332 // 700
+	  8, 18, //		333 // 0
 	  // Pacman //
 	  2, 20, //		334 // P1
 	  0, 20, //		335 // P3 Right
@@ -459,18 +459,18 @@ int SpriteData[500][2]{
 	 15, 17, //		438 // Key Bottom Right
 	  // Misc 2 //
 	 14,  7, //		439 // Empty MINI
-	 13, 20, //		440 // ...
-
-
+	 13, 20, //		440 // Issue #1
+	 9, 18, //		441 // Issue #2
+	 0, 29, //		442 // Logo
 };
 
 int main() {
-	int StoredLevel = 1, StoredLives = 3, StoredScore = 0;
 	SetConsoleTitle("Console Pacman");
 	Main* Program = new Main;
+	int StoredLevel = 1, StoredLives = 3, StoredScore = 0, StoredHighScore = Program->ReadFile();
 	Program->SetWindowDimensions(29, 39);
 	while (!Program->ProgramStatus()) {
-		Game* Pacman = new Game(StoredLevel, StoredLives, StoredScore);
+		Game* Pacman = new Game(StoredLevel, StoredLives, StoredScore, StoredHighScore);
 		do {
 			Pacman->Draw();
 			Pacman->Input();
@@ -481,7 +481,9 @@ int main() {
 			StoredLevel = ++Pacman->Level;
 		else
 			StoredLevel = Pacman->Level;
-		StoredLives = Pacman->Lives, StoredScore = Pacman->Score;
+		StoredLives = Pacman->Lives, StoredScore = Pacman->Score, StoredHighScore = Pacman->HighScore;
+		if (Program->ReadFile() < Pacman->HighScore)
+			Program->WriteFile(StoredHighScore);
 		delete Pacman;
 		system("CLS");
 	}
@@ -493,6 +495,10 @@ bool DrawSprite(int xpos, int ypos, int ID) {
 	SelectObject(hdc, bmap);
 	if (ID == 322 || ID == 439)
 		BitBlt(console, xpos + 6, ypos + 6, 4, 4, hdc, SpriteData[ID - 1][0] * res + 6, SpriteData[ID - 1][1] * res +  6, SRCCOPY);
+	else if ((ID >= 325 && ID <= 333) || ID == 441)
+		BitBlt(console, xpos, ypos, res, 9, hdc, SpriteData[ID - 1][0] * res, SpriteData[ID - 1][1] * res, SRCCOPY);
+	else if (ID == 442)
+		BitBlt(console, xpos, ypos, 356, 81, hdc, SpriteData[ID - 1][0] * res, SpriteData[ID - 1][1] * res, SRCCOPY);
 	else
 		BitBlt(console, xpos, ypos, res, res, hdc, SpriteData[ID - 1][0] * res, SpriteData[ID - 1][1] * res, SRCCOPY);
 	DeleteObject(bmap);
