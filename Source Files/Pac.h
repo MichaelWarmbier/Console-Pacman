@@ -15,7 +15,7 @@ public:
 	int Y; // Y position
 	dir Face; // Facing direction
 
-	Pac() : Face(NONE),Phase(1),PhaseTS(GetTime()),X(216),Y(416),MovementTS(GetTime()) {}; // Constructor
+	Pac() : Face(LEFT),Phase(1),PhaseTS(GetTime()),X(216),Y(416),MovementTS(GetTime()) {}; // Constructor
 
 	void UpdatePhase(); // Updates display face accordingly
 	bool CollisionCheck(dir DIR) const; // Checks for adjacent collision based on face
