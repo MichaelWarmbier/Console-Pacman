@@ -10,12 +10,18 @@ public:
 
 	bool ProgramStatus() const { return EndProgram; }; // Rerturn program status
 	void ExitProgram() { EndProgram = true; }; // Exit program
-
-	void SpriteTest() { // Sprite test
-		for (int i = 0; i < 500; i++) {
-			DrawSprite(5 * res, 5 * res, i);
-			Wait(.08);
-		}
+	int ReadFile() {
+		int hsdata = 0;
+		ifstream hs;
+		hs.open("score.hs");
+		hs >> hsdata;
+		return hsdata;
+	}
+	void WriteFile(int data) { // Wites highscore data to file
+		ofstream hs;
+		hs.open("score.hs", ofstream::out | ofstream::trunc);
+		hs << data;
+		hs.close();
 	}
 
 	void SetWindowDimensions(int x, int y) {
