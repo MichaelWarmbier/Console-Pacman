@@ -52,12 +52,13 @@ private:
 	int DotsCollected; // Collected dots value
 
 	// DEBUG
-	bool DisplayFPS = false; // Displays FPS meter
+	bool DisplayFPS = true; // Displays FPS meter
 	bool InstaDeath = false; // Instant beath button bound to '3'
 	bool InstaLive = false; // Instant life button bound to '2'
 	bool InstaEnd = false; // Instant win button bound to '1'
+	bool LoadSpriteTest = false; // Applies Sprite Test on load
 
-	const int FruitTable[20] = {407,407,411,415,415,419,419,423,423,427,427,431,431,435,435,435,435,435,435,435}; // Table for determining which fruit to draw per level
+	const int FruitTable[20] = {407,411,415,415,419,419,423,423,427,427,431,431,435,435,435,435,435,435,435,435}; // Table for determining which fruit to draw per level
 
 public:
 	int Score; // Score value
@@ -66,10 +67,16 @@ public:
 	int Level; // Level value
 	bool Death; // Bool to check if player died or won a level
 	double FPSTS; int FPS, LastFPS; // FPS related variables
+	double FruitTS; bool FruitAppear;
+	double F_PointTS; bool F_PointAppear;
+	bool Fruit1, Fruit2;
+	int LastLifeEarned;
 
-	Game(int Lvl, int Lv, int Scre) :EndGame(false), Death(false), GameStarted(false), EnergizerFlashActive(false), EnergizerFlashTS(GetTime()), _1UPFlashActive(false), _1UPFlashTS(GetTime()), Score(Scre), HighScore(0), Lives(Lv), Level(Lvl), DotsCollected(0), FPSTS(GetTime()), FPS(0), LastFPS(0) {
+	Game(int Lvl, int Lv, int Scre, int HScre) :EndGame(false), LastLifeEarned(0), Fruit1(false), Fruit2(false), FruitTS(0), F_PointTS(0), FruitAppear(false), F_PointAppear(false), Death(false), GameStarted(false), EnergizerFlashActive(false), EnergizerFlashTS(GetTime()), _1UPFlashActive(false), _1UPFlashTS(GetTime()), Score(Scre), HighScore(HScre), Lives(Lv), Level(Lvl), DotsCollected(0), FPSTS(GetTime()), FPS(0), LastFPS(0) {
 		InitializeCollision(); // Provides map collision
 		DrawLevel(); // Level
+		if (LoadSpriteTest)
+			SpriteTest();
 	};
 
 	bool GameStatus() const; // Returns the status of the game
@@ -89,12 +96,22 @@ public:
 	void Flash(); // Flashes the map to its alternative color scheme
 	void KillPlayer(); // Kills the player
 	void GetReady(); // Displays ready text
+	void SpawnFruit(); // Allows fruit to appear
+	void PointsDraw(); // Draws points when fruit is eaten
+	void FruitScore(); // Rewards player points from eaten fruit
 
 	void Draw(); // Draws all display elements
 	void Input(); // Rerceives input used for future logic
 	void Logic(); // Applies all game logic
 
 	void DrawBoard(); // Draws specifically the board
+	void SpriteTest() { // Sprite test
+		for (int i = 0; i <= 442; i++) {
+			DrawSprite(5 * res, 5 * res, i);
+			Wait(.02);
+		}
+		Wait(4);
+	}
 
 };
 
