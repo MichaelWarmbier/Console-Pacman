@@ -58,6 +58,33 @@ void Game::Logic() {
 	LevelEnd();
 	if (HighScore < Score)
 		HighScore = Score;
+	if ((DotsCollected == 70 && !Fruit1) || (DotsCollected == 170 && !Fruit2)) {
+		FruitAppear = true;
+		FruitTS = GetTime();
+		if (DotsCollected == 70)
+			Fruit1 = true;
+		else
+			Fruit2 = true;
+	}
+	if (FruitAppear) {
+		SpawnFruit();
+	}
+	if (Player.Y == 320 && Player.X >= 208 && Player.X <= 224 && FruitAppear) {
+		F_PointAppear = true;
+		F_PointTS = GetTime();
+		FruitAppear = false;
+		FruitScore();
+	}
+	PointsDraw();
+	if (GetTimeSince(FruitTS) > 9 && FruitAppear) {
+		FruitTS = 0;
+		FruitAppear = false;
+		DrawSprite(216, 320, 402);
+	}
+	if (LastLifeEarned <= Score - 10000) {
+		LastLifeEarned = Score;
+		Lives++;
+	}
 }
 bool Game::UpdateTS(bool & State, double & TS, double Time) {
 	if (GetTimeSince(TS) > Time) {
@@ -342,4 +369,120 @@ void Game::GetReady() {
 		DrawSprite((11 + i) * 16, 320, 402);
 	}
 	GameStarted = true;
+}
+
+void Game::SpawnFruit() {
+	switch (Level) {
+	case 1:
+		DrawSprite(216, 320, 353);
+		break;
+	case 2:
+		DrawSprite(216, 320, 354);
+		break;
+	case 3:
+	case 4:
+		DrawSprite(216, 320, 355);
+		break;
+	case 5:
+	case 6:
+		DrawSprite(216, 320, 356);
+		break;
+	case 7:
+	case 8:
+		DrawSprite(216, 320, 357);
+		break;
+	case 9:
+	case 10:
+		DrawSprite(216, 320, 358);
+		break;
+	case 11:
+	case 12:
+		DrawSprite(216, 320, 359);
+		break;
+	default:
+		DrawSprite(216, 320, 360);
+		break;
+
+	}
+}
+
+void Game::PointsDraw() {
+	if (F_PointAppear) {
+		switch (Level) {
+		case 1:
+			DrawSprite(216, 320, 329);
+			break;
+		case 2:
+			DrawSprite(216, 320, 330);
+			break;
+		case 3:
+		case 4:
+			DrawSprite(216, 320, 331);
+			break;
+		case 5:
+		case 6:
+			DrawSprite(216, 320, 332);
+			break;
+		case 7:
+		case 8:
+			DrawSprite(216, 320, 329);
+			DrawSprite(232, 320, 333);
+			break;
+		case 9:
+		case 10:
+			DrawSprite(216, 320, 441);
+			DrawSprite(232, 320, 333);
+			break;
+		case 11:
+		case 12:
+			DrawSprite(216, 320, 331);
+			DrawSprite(232, 320, 333);
+			break;
+		default:
+			DrawSprite(216, 320, 332);
+			DrawSprite(232, 320, 333);
+			break;
+
+		}
+	}
+	if (GetTimeSince(F_PointTS) > 1 && F_PointAppear) {
+		F_PointTS = 0;
+		F_PointAppear = false;
+		DrawSprite(216, 320, 402);
+		DrawSprite(232, 320, 402);
+	}
+}
+void Game::FruitScore() {
+	switch (Level) {
+	case 1:
+		Score += 100;
+		break;
+	case 2:
+		Score += 300;
+		break;
+	case 3:
+	case 4:
+		Score += 500;
+		break;
+	case 5:
+	case 6:
+		Score += 700;
+		break;
+	case 7:
+	case 8:
+		Score += 1000;
+		break;
+	case 9:
+	case 10:
+		Score += 2000;
+		break;
+	case 11:
+	case 12:
+		Score += 3000;
+		break;
+	default:
+		Score += 5000;
+		break;
+
+	}
 }
