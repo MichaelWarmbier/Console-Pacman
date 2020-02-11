@@ -17,10 +17,6 @@ void Game::DrawBoard() {
 	}
 }
 
-bool Game::GameStatus() const {
-	return EndGame;
-}
-
 void Game::Draw() {
 	DrawBoard(); // Main Map Drawing Function
 	DrawCounter(0, 1, Score); // Score Display
@@ -85,6 +81,8 @@ void Game::Logic() {
 		LastLifeEarned = Score;
 		Lives++;
 	}
+	if (Lives == 0)
+		GameOver();
 }
 bool Game::UpdateTS(bool & State, double & TS, double Time) {
 	if (GetTimeSince(TS) > Time) {
@@ -124,10 +122,10 @@ void Game::DrawLives() {
 	for (int i = 0; i < Lives; i++) {
 		if (i == 0)
 			continue;
-		SetTile(0 + (i * 2), 34, 403);
-		SetTile(1 + (i * 2), 34, 404);
-		SetTile(0 + (i * 2), 35, 405);
-		SetTile(1 + (i * 2), 35, 406);
+		DrawSprite((0 + (i * 2)) * res, 34 * res, 403);
+		DrawSprite((1 + (i * 2)) * res, 34 * res, 404);
+		DrawSprite((0 + (i * 2)) * res, 35 * res, 405);
+		DrawSprite((1 + (i * 2)) * res, 35 * res, 406);
 	}
 }
 
@@ -316,6 +314,7 @@ void Game::LevelEnd() {
 			Flash();
 		}
 		EndGame = true;
+		LevelUp = true;
 	}
 }
 
@@ -352,6 +351,7 @@ void Game::KillPlayer() {
 	Death = true;
 	Lives--;
 	EndGame = true;
+	Wait(1.5);
 }
 
 void Game::GetReady() {
@@ -485,4 +485,27 @@ void Game::FruitScore() {
 		break;
 
 	}
+}
+
+void Game::GameOver() {
+	// Draw GameOver
+	DrawSprite(Player.X, Player.Y, 402);
+
+	DrawSprite(9 * res, 20 * res, 7);
+	DrawSprite(10 * res, 20 * res, 1);
+	DrawSprite(11 * res, 20 * res, 13);
+	DrawSprite(12 * res, 20 * res, 5);
+
+	DrawSprite(15 * res, 20 * res, 15);
+	DrawSprite(16 * res, 20 * res, 22);
+	DrawSprite(17 * res, 20 * res, 5);
+	DrawSprite(18 * res, 20 * res, 18);
+
+	Wait(3);
+	EndGame = true;
+	EXIT = true;
+	Level = 1;
+	Score = 0;
+	Lives = 3;
+
 }
