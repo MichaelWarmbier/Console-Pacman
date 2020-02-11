@@ -10,6 +10,7 @@ public:
 
 	bool ProgramStatus() const { return EndProgram; }; // Rerturn program status
 	void ExitProgram() { EndProgram = true; }; // Exit program
+
 	int ReadFile() {
 		int hsdata = 0;
 		ifstream hs;
