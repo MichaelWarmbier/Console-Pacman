@@ -467,26 +467,48 @@ int SpriteData[500][2]{
 int main() {
 	SetConsoleTitle("Console Pacman");
 	Main* Program = new Main;
-	int StoredLevel = 1, StoredLives = 3, StoredScore = 0, StoredHighScore = Program->ReadFile();
+	int StoredLevel = 1, StoredLives = 3, StoredScore = 0, StoredHighScore = Program->ReadFile(), StoredBoard[BH][BW];
 	Program->SetWindowDimensions(29, 39);
-	while (!Program->ProgramStatus()) {
-		Game* Pacman = new Game(StoredLevel, StoredLives, StoredScore, StoredHighScore);
+	do {
+		TransferBoardData(DefaultBoard, StoredBoard);
+		TitleScreen* Menu = new TitleScreen;
 		do {
-			Pacman->Draw();
-			Pacman->Input();
-			Pacman->Logic();
+			Menu->Draw();
+			Menu->Input();
+			Menu->Logic();
 			while (GetConsoleWindow() != GetForegroundWindow()) {}
-		} while (!Pacman->GameStatus());
-		if (!Pacman->Death)
-			StoredLevel = ++Pacman->Level;
-		else
-			StoredLevel = Pacman->Level;
-		StoredLives = Pacman->Lives, StoredScore = Pacman->Score, StoredHighScore = Pacman->HighScore;
-		if (Program->ReadFile() < Pacman->HighScore)
-			Program->WriteFile(StoredHighScore);
-		delete Pacman;
+		} while (!Menu->MenuStatus());
 		system("CLS");
-	}
+		if (Menu->EXIT)
+			Program->ExitProgram();
+		delete Menu;
+		bool PlayGame = true;
+		while (PlayGame && !Program->ProgramStatus()) {
+			Game* Pacman = new Game(StoredLevel, StoredLives, StoredScore, StoredHighScore, StoredBoard);
+			while (!Pacman->GameStatus()) {
+				Pacman->Draw();
+				Pacman->Input();
+				Pacman->Logic();
+				while (GetConsoleWindow() != GetForegroundWindow()) {}
+			}
+			if (!Pacman->Death)
+				StoredLevel = ++Pacman->Level;
+			else
+				StoredLevel = Pacman->Level;
+			StoredLives = Pacman->Lives, StoredScore = Pacman->Score, StoredHighScore = Pacman->HighScore;
+			if (Pacman->LevelUp)
+				TransferBoardData(DefaultBoard, StoredBoard);
+			else
+				TransferBoardData(Pacman->Board, StoredBoard);
+			if (Program->ReadFile() < Pacman->HighScore)
+				Program->WriteFile(StoredHighScore);
+			if (Pacman->EXIT)
+				PlayGame = false;
+			delete Pacman;
+			system("CLS");
+		}
+		system("CLS");
+	} while (!Program->ProgramStatus());
 	delete Program;
 	return EXIT_SUCCESS;
 }
@@ -534,4 +556,20 @@ void ShowConsoleCursor(bool showFlag) {
 	GetConsoleCursorInfo(out, &cursorInfo);
 	cursorInfo.bVisible = showFlag;
 	SetConsoleCursorInfo(out, &cursorInfo);
+}
+
+void TransferBoardData(int a1[BH][BW], int a2[BH][BW]) {
+	for (int y = 0; y < BH; y++) {
+		for (int x = 0; x < BW; x++) {
+			a2[y][x] = a1[y][x];
+		}
+	}
+}
+
+void TransferBoardData(const int a1[BH][BW], int a2[BH][BW]) {
+	for (int y = 0; y < BH; y++) {
+		for (int x = 0; x < BW; x++) {
+			a2[y][x] = a1[y][x];
+		}
+	}
 }
