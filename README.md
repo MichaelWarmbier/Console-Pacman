@@ -1,7 +1,6 @@
 # Console-Pacman
 
 #### THIS PROJECT HAS CURRENTLY BEEN DISCONTINUED
-#### It may be picked up again in the future
 
 ### Pacman entirely redesigned using C++. 
 
