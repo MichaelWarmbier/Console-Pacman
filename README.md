@@ -1,6 +1,6 @@
 # Console-Pacman
 
-#### THIS PROJECT HAS CURRENTLY BEEN DISCONTINUED
+## Work on this project has been discontinued.
 
 ### Pacman entirely redesigned using C++. 
 
@@ -13,6 +13,8 @@ Pacman is the original maze-chase arcade game developed by Bandai Namco and rele
 ## Description
 
 This version of Pacman is being developed using the standard libraries of C++ and the Windows.h header. Written and compiled in Visual Studio 2019. All credit is shared between both developers.
+
+This project was made with the purpose of practicing turning abstract concepts into concrete code. None of those code was directly ripped or inspired by anything other than the abstract logic of the game. 
 
 ## File System
 
