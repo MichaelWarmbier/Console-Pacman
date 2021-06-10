@@ -1,6 +1,6 @@
 # Console-Pacman
 
-## Work on this project has been discontinued.
+ Work on this project has been discontinued.
 
 ### Pacman entirely redesigned using C++. 
 
