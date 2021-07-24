@@ -1,6 +1,6 @@
 # Console-Pacman
 
- Work on this project has been discontinued.
+ Work on this project has been discontinued. See the redesign in GML here: https://github.com/MichaelWarmbier/Pacman_GML
 
 ### Pacman entirely redesigned using C++. 
 
