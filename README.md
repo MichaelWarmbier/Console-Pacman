@@ -18,14 +18,15 @@ This project was made with the purpose of practicing turning abstract concepts i
 
 ## File System
 
-* Executables - Each executable is associated with a different build versions. In order to run an executable and properly play the game, all associated files must be present (including .dlls, the spritesheet and sound files).
-
 * Sounds - All sounds files used in the game.
 
 * Source - All source .cpp/.h files, if any.
 
 * Sprite Sheet - Holds one file, the main sprite sheet used for the game.
 
+## Installation
+
+This project isn't intended to be installed considered its unfinished state. You can, however, get it to work by using the source files to create a new C++ project with visual studio.
 
 ## Design
 
